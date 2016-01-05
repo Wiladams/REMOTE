@@ -1,9 +1,7 @@
 -- LocalScreen.lua
 
-local MemoryStream = require("MemoryStream");
-local BinaryStream = require("BinaryStream");
-local GDI32 = require("GDI32");
-local User32 = require ("User32")
+local MemoryStream = require("memorystream");
+local BinaryStream = require("binarystream");
 
 
 local ScreenWidth = User32.GetSystemMetrics(User32.FFI.CXSCREEN);
@@ -107,34 +105,34 @@ ScreenCapture.captureScreen = function(self)
 
     self.CapturedStream:Seek(0);
 
-    local bs = BinaryStream.new(self.CapturedStream);
+    local bs = BinaryStream:new(self.CapturedStream);
 
 --print("FILESIZE: ", self.filesize);
 --print("PIXEL OFF:", self.pixeloffset);
 
 	-- Write File Header
-    bs:WriteByte(string.byte('B'))
-    bs:WriteByte(string.byte('M'))
-    bs:WriteInt32(self.filesize);
-    bs:WriteInt16(0);
-    bs:WriteInt16(0);
-    bs:WriteInt32(self.pixeloffset);
+    bs:writeByte(string.byte('B'))
+    bs:writeByte(string.byte('M'))
+    bs:writeInt32(self.filesize);
+    bs:writeInt16(0);
+    bs:writeInt16(0);
+    bs:writeInt32(self.pixeloffset);
 
     -- Bitmap information header
-    bs:WriteInt32(40);
-    bs:WriteInt32(dibsec.Info.bmiHeader.biWidth);
-    bs:WriteInt32(dibsec.Info.bmiHeader.biHeight);
-    bs:WriteInt16(dibsec.Info.bmiHeader.biPlanes);
-    bs:WriteInt16(dibsec.Info.bmiHeader.biBitCount);
-    bs:WriteInt32(dibsec.Info.bmiHeader.biCompression);
-    bs:WriteInt32(dibsec.Info.bmiHeader.biSizeImage);
-    bs:WriteInt32(dibsec.Info.bmiHeader.biXPelsPerMeter);
-    bs:WriteInt32(dibsec.Info.bmiHeader.biYPelsPerMeter);
-    bs:WriteInt32(dibsec.Info.bmiHeader.biClrUsed);
-    bs:WriteInt32(dibsec.Info.bmiHeader.biClrImportant);
+    bs:writeInt32(40);
+    bs:writeInt32(dibsec.Info.bmiHeader.biWidth);
+    bs:writeInt32(dibsec.Info.bmiHeader.biHeight);
+    bs:writeInt16(dibsec.Info.bmiHeader.biPlanes);
+    bs:writeInt16(dibsec.Info.bmiHeader.biBitCount);
+    bs:writeInt32(dibsec.Info.bmiHeader.biCompression);
+    bs:writeInt32(dibsec.Info.bmiHeader.biSizeImage);
+    bs:writeInt32(dibsec.Info.bmiHeader.biXPelsPerMeter);
+    bs:writeInt32(dibsec.Info.bmiHeader.biYPelsPerMeter);
+    bs:writeInt32(dibsec.Info.bmiHeader.biClrUsed);
+    bs:writeInt32(dibsec.Info.bmiHeader.biClrImportant);
 
     -- Write the actual pixel data
-    self.CapturedStream:WriteBytes(dibsec.Pixels, self.pixelarraysize, 0);
+    self.CapturedStream:writeBytes(dibsec.Pixels, self.pixelarraysize, 0);
 end
 
 
