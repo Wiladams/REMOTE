@@ -1,18 +1,3 @@
-# REMOTE
-Remote Execution Might Offer True Excitement
-
-
-This code was pulled out of one of the TINNSnips projects.  
-It is a web server, which is meant to be attached to a framebuffer/app 
-so that drawing can be viewed from a remote client.
-
-Typical usage is to create an 'application' such as can be found in 
-test/share_app1.lua
-
-Within this app, you setup the screen, and setup your drawing routines
-and start the application running.
-
-```lua
 package.path = "../?.lua;"..package.path;
 
 local NetInteractor = require("tflremote.sharer")
@@ -49,6 +34,3 @@ function loop()
 end
 
 run()
-```
-
-A web page will be served up, with your imagery as the backing store.

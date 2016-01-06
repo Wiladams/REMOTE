@@ -1,6 +1,6 @@
 
 local ffi = require "ffi"
-local stream = require "stream"
+local stream = require "tflremote.stream"
 
 
 local MemoryStream = {}

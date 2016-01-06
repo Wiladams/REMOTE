@@ -1,5 +1,12 @@
 local ffi = require("ffi")
 
+
+local function GetAlignedByteCount(width, bitsPerPixel, byteAlignment)
+    local nbytes = width * (bitsPerPixel/8);
+    return nbytes + (byteAlignment - (nbytes % byteAlignment)) % 4
+end
+
+
 local DrawingContext = {}
 setmetatable(DrawingContext, {
 	__call = function(self, ...)
@@ -11,11 +18,21 @@ local DrawingContext_mt = {
 }
 
 
+local bitcount = 32;
+local alignment = 4;
+
 function DrawingContext.init(self, width, height, data)
+	rowsize = GetAlignedByteCount(width, bitcount, alignment);
+    pixelarraysize = rowsize * math.abs(height);
+
 	local obj = {
 		width = width;
 		height = height;
+		bitcount = bitcount;
 		data = data;
+
+		rowsize = rowsize;
+		pixelarraysize = pixelarraysize;
 	}
 	setmetatable(obj, DrawingContext_mt)
 

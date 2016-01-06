@@ -1,57 +1,52 @@
 local ffi = require("ffi")
 local turbo = require("turbo")
 
-local colors = require("colors")
-local bmp = require("bmpcodec")
-local DrawingContext = require("DrawingContext")
-local MemoryStream = require("memorystream")
+--local colors = require("colors")
+local bmp = require("tflremote.bmpcodec")
+local DrawingContext = require("tflremote.DrawingContext")
+local MemoryStream = require("tflremote.memorystream")
 
 --[[
   Application Variables
 --]]
-local ScreenWidth = 640;
-local ScreenHeight = 480;
-
-
-local captureWidth = ScreenWidth;
-local captureHeight = ScreenHeight;
-
-local ImageWidth = captureWidth * 1.0;
-local ImageHeight = captureHeight * 1.0;
-local ImageBitCount = 32;
-
 local serviceport = tonumber(arg[1]) or 8080
 
-local awidth = 640
-local aheight = 480;
+local ImageBitCount = 32;
+local ScreenWidth = nil;
+local ScreenHeight = nil;
+local captureWidth = nil;
+local captureHeight = nil;
 
-local graphPort = DrawingContext(ScreenWidth, ScreenHeight)
-local graphParams = bmp.setup(ScreenWidth, ScreenHeight, 32, graphPort.data);
-local strm = MemoryStream:new(graphParams.streamsize);
+local graphPort = nil;
+local mstream = nil;
+local BmpImageSize = nil;
 
-local yoffset = 0;
 
-function draw()
-  graphPort:rect(0,0,awidth, aheight, colors.black);
 
-  graphPort:rect(10, 30, 100, 100, colors.red)
-  graphPort:rect(110, 30, 100, 100, colors.green)
-  graphPort:rect(210, 30, 100, 100, colors.blue)
+function size(width, height)
+  ScreenWidth = width;
+  ScreenHeight = height;
 
-  graphPort:hline(10, yoffset, 100, colors.white)
-  yoffset = yoffset + 1;
-  if yoffset >= aheight then
-    yoffset = 2;
-  end
+  captureWidth = ScreenWidth;
+  captureHeight = ScreenHeight;
 
+  ImageWidth = captureWidth * 1.0;
+  ImageHeight = captureHeight * 1.0;
+
+
+  graphPort = DrawingContext(ScreenWidth, ScreenHeight)
+  BmpImageSize = bmp.getBmpFileSize(graphPort)
+  mstream = MemoryStream:new(BmpImageSize);
+
+  return graphPort
 end
 
-function writeImage(graphParams)
+function writeImage(strm, img)
   -- generate a .bmp file
-  strm:seek(0);
-  bmp.write(strm, graphParams)
+  strm:reset();
+  local bytesWritten = bmp.write(strm, img)
   
-  return strm;
+  return bytesWritten;
 end
 
 
@@ -61,24 +56,25 @@ function DefaultHandler:get(...)
 end
 
 
-local ScreenHandler = class("ScreenHandler", turbo.web.RequestHandler)
-function ScreenHandler:get(...)
-  --turbo.log.devel("ScreenHandler: "..self.host)
-  draw();
-  local strm = writeImage(graphParams);
+-- Request handler for /grab%.bmp(.*)$
+local GrabHandler = class("GrabHandler", turbo.web.RequestHandler)
 
-  --print("STREAM: ", strm:position())
-  -- write headers appropriate for a bmp image
+function GrabHandler:get(...)
+  --turbo.log.devel("ScreenHandler: "..self.host)
+
+  local bytesWritten = writeImage(mstream, graphPort);
+
+  --print("STREAM: ", bytesWritten)
   self:set_status(200)
   self:add_header("Content-Type", "image/bmp")
-  self:add_header("Content-Length", tostring(strm:position()))
-  self:add_header("Connection", "close")
-  --self:add_header("Connection", "Keep-Alive")
+  self:add_header("Content-Length", tostring(bytesWritten))
+  self:add_header("Connection", "Keep-Alive")
   
-  self:write(ffi.string(strm.Buffer, strm:position()));
+  self:write(ffi.string(mstream.Buffer, bytesWritten));
+  self:flush();
 end
 
-
+-- Default request handler
 local StartupHandler = class("StartupHandler", turbo.web.RequestHandler)
 
 local startupContent = nil;
@@ -118,12 +114,6 @@ local function loadStartupContent(self)
       ["screenheight"]  = ScreenHeight,
     }
 
---[[
-print("TEMPLATE CONSTRUCTION")
-for key, value in pairs(subs) do
-  print(key, value)
-end
---]]
     startupContent = string.gsub(content, "%<%?(%a+)%?%>", subs)
     --print(startupContent)
 end
@@ -146,14 +136,32 @@ end
 local app = turbo.web.Application({
   {"/(jquery%.js)", turbo.web.StaticFileHandler, "./jquery.js"},
   {"/(favicon%.ico)", turbo.web.StaticFileHandler, "./favicon.ico"},
-  {"/grab%.bmp(.*)$", ScreenHandler},
+  {"/grab%.bmp(.*)$", GrabHandler},
   {"/screen", StartupHandler},
 })
 
 turbo.log.categories.success = false;
 
-app:listen(serviceport)
-turbo.ioloop.instance():start()
+local function onLoop(ioinstance)
+  if loop then
+    loop()
+  end
+  ioinstance:add_callback(onLoop, ioinstance)
+end
+
+local function onInterval(ioinstance)
+  if loop then
+    loop()
+  end
+end
 
 
+function run()
+  app:listen(serviceport)
+  local ioinstance = turbo.ioloop.instance()
+  
+  ioinstance:set_interval(30, onInterval, ioinstance)
+  --ioinstance:add_callback(onLoop, ioinstance)
 
+  ioinstance:start()
+end
