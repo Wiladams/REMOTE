@@ -41,7 +41,7 @@ function draw()
   graphPort:hline(10, yoffset, 100, colors.white)
   yoffset = yoffset + 1;
   if yoffset >= aheight then
-    yoffset = 0;
+    yoffset = 2;
   end
 
 end
@@ -129,7 +129,6 @@ end
 end
 
 function StartupHandler:get(...)
-  --turbo.log.devel("StartupHandler: ")
 
   if not startupContent then
     loadStartupContent(self)
@@ -150,6 +149,8 @@ local app = turbo.web.Application({
   {"/grab%.bmp(.*)$", ScreenHandler},
   {"/screen", StartupHandler},
 })
+
+turbo.log.categories.success = false;
 
 app:listen(serviceport)
 turbo.ioloop.instance():start()
