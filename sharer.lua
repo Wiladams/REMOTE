@@ -1,4 +1,10 @@
+local ffi = require("ffi")
 local turbo = require("turbo")
+
+local colors = require("colors")
+local bmp = require("bmpcodec")
+local DrawingContext = require("DrawingContext")
+local MemoryStream = require("memorystream")
 
 --[[
   Application Variables
@@ -12,10 +18,41 @@ local captureHeight = ScreenHeight;
 
 local ImageWidth = captureWidth * 1.0;
 local ImageHeight = captureHeight * 1.0;
-local ImageBitCount = 16;
+local ImageBitCount = 32;
 
 local serviceport = tonumber(arg[1]) or 8080
 
+local awidth = 640
+local aheight = 480;
+
+local graphPort = DrawingContext(ScreenWidth, ScreenHeight)
+local graphParams = bmp.setup(ScreenWidth, ScreenHeight, 32, graphPort.data);
+local strm = MemoryStream:new(graphParams.streamsize);
+
+local yoffset = 0;
+
+function draw()
+  graphPort:rect(0,0,awidth, aheight, colors.black);
+
+  graphPort:rect(10, 30, 100, 100, colors.red)
+  graphPort:rect(110, 30, 100, 100, colors.green)
+  graphPort:rect(210, 30, 100, 100, colors.blue)
+
+  graphPort:hline(10, yoffset, 100, colors.white)
+  yoffset = yoffset + 1;
+  if yoffset >= aheight then
+    yoffset = 0;
+  end
+
+end
+
+function writeImage(graphParams)
+  -- generate a .bmp file
+  strm:seek(0);
+  bmp.write(strm, graphParams)
+  
+  return strm;
+end
 
 
 local DefaultHandler = class("DefaultHandler", turbo.web.RequestHandler)
@@ -26,9 +63,19 @@ end
 
 local ScreenHandler = class("ScreenHandler", turbo.web.RequestHandler)
 function ScreenHandler:get(...)
-  turbo.log.devel("ScreenHandler: "..self.host)
-  self:write("Screen Handler: ")
-  self:write(select("1", ...))
+  --turbo.log.devel("ScreenHandler: "..self.host)
+  draw();
+  local strm = writeImage(graphParams);
+
+  --print("STREAM: ", strm:position())
+  -- write headers appropriate for a bmp image
+  self:set_status(200)
+  self:add_header("Content-Type", "image/bmp")
+  self:add_header("Content-Length", tostring(strm:position()))
+  self:add_header("Connection", "close")
+  --self:add_header("Connection", "Keep-Alive")
+  
+  self:write(ffi.string(strm.Buffer, strm:position()));
 end
 
 
@@ -82,7 +129,7 @@ end
 end
 
 function StartupHandler:get(...)
-  turbo.log.devel("StartupHandler: ")
+  --turbo.log.devel("StartupHandler: ")
 
   if not startupContent then
     loadStartupContent(self)
@@ -99,6 +146,7 @@ end
 
 local app = turbo.web.Application({
   {"/(jquery%.js)", turbo.web.StaticFileHandler, "./jquery.js"},
+  {"/(favicon%.ico)", turbo.web.StaticFileHandler, "./favicon.ico"},
   {"/grab%.bmp(.*)$", ScreenHandler},
   {"/screen", StartupHandler},
 })
@@ -108,198 +156,3 @@ turbo.ioloop.instance():start()
 
 
 
---[=[
-
-local WebSocket = require("WebSocket")
-local Network = require("Network")
-
-
-
-local utils = require("utils")
-local Compressor = require("Compressor")
-
-local UIOSimulator = require("UIOSimulator")
-
-
-
-local net = Network();
-local screenCap = ScreenCapture({BitCount = ImageBitCount});
-local chomper = Compressor();
-
---[[
-	Application Functions
---]]
-
-
-
-local getContentSize = function(width, height, bitcount, alignment)
-  alignment = alignment or 4
-
-  local rowsize = GDI32.GetAlignedByteCount(width, bitcount, alignment);
-  local pixelarraysize = rowsize * math.abs(height);
-  local pixeloffset = 54;
-  local totalsize = pixeloffset+pixelarraysize;
-
-  return totalsize;
-end
-
-
-local filesize = getContentSize(ImageWidth, ImageHeight, ImageBitCount);
-local zstream = MemoryStream(filesize);
-
--- Serve the screen up as a bitmap image (.bmp)
-local getCompressedSingleShot = function(response)
-  screenCap:captureScreen();
-
-  zstream:Seek(0);
-
-  local bytesWritten, err = chomper:compress(zstream.Buffer,   zstream.Length, 
-      screenCap.CapturedStream.Buffer, screenCap.CapturedStream:GetPosition() );
-
-
---print("getCompressedSingleShot, compress, ERROR: ", bytesWritten, err);
-
-  zstream.BytesWritten = bytesWritten;
-
-  local headers = {
-    ["Connection"]      = "Keep-Alive",
-    ["Content-Length"]  = bytesWritten,
-    ["Content-Type"]    = "image/bmp",
-    ["Content-Encoding"]= "gzip",
-  }
-
-  response:writeHead("200", headers);
-  response:WritePreamble();
-
-  response.DataStream:writeBytes(zstream.Buffer, bytesWritten);
-
-
-  -- reset the compressor
-  local obj, err = chomper:reset();
-  if not obj then
-    print("RESET Compressor: ", err);
-    return false, err;
-  end
-
-
---print("== getCompressedSingleShot: END ==");
-
-  return true;
-end
-
-
-local getSingleShot = function(response)
-  screenCap:captureScreen();
-
-  local contentlength = screenCap.CapturedStream:GetPosition();
-
-  local headers = {
-    ["Connection"]      = "Keep-Alive",
-    ["Content-Length"] = tostring(contentlength),
-	  ["Content-Type"] = "image/bmp",
-  }
-
-  response:writeHead("200", headers);
-  response:WritePreamble();
-
-  response.DataStream:writeBytes(screenCap.CapturedStream.Buffer, contentlength);
-
-  return true;
-end
-
-local handleUIOCommand = function(command)
-	
-  local values = utils.parseparams(command)
-
-  if values["action"] == "mousemove" then
-    UIOSimulator.MouseMove(tonumber(values["x"]), tonumber(values["y"]))
-  elseif values["action"] == "mousedown" then
-    UIOSimulator.MouseDown(tonumber(values["x"]), tonumber(values["y"]))
-  elseif values["action"] == "mouseup" then
-    UIOSimulator.MouseUp(tonumber(values["x"]), tonumber(values["y"]))		
-  elseif values["action"] == "keydown" then
-    UIOSimulator.KeyDown(tonumber(values["which"]))
-  elseif values["action"] == "keyup" then
-    UIOSimulator.KeyUp(tonumber(values["which"]))
-  end
-end
-
-
-
---[[
-	Responding to remote user input
-]]--
-local handleUIOSocketData = function(ws)
-  while true do
-    local frame, err = ws:ReadFrame()
-
-    if not frame then
-      print("handleUIOSocketData() - END: ", err);
-      break
-    end
-
-    local command = ffi.string(frame.Data, frame.DataLength);
-    handleUIOCommand(command);
-  end
-end
-
-local handleUIOSocket = function(request, response)
-  local ws = WebSocket();
-  ws:RespondWithServerHandshake(request, response);
-
-  spawn(handleUIOSocketData, ws);
-
-  return false;
-end
-
-
---[[
-	Primary Service Response routine
-]]--
-local server = nil;
-
-local OnRequest = function(param, request, response)
-print("OnRequest: ", request.Url.path);
---print("== HEADERS == ")
---for key,value in pairs(request.Headers) do
---  print(key, value);
---end
---print("--------------");
-
-
-  local success = nil;
-
-  if request.Url.path == "/uiosocket" then
-    success, err = handleUIOSocket(request, response)
-    
-    -- For this case, return after handing off the socket
-    -- as we don't want the socket to be recycled from here
-    return true;
-  elseif request.Url.path == "/startup.bmp" then
-    success, err = getCompressedSingleShot(response);
-  elseif request.Url.path == "/screen.bmp" then
-    success, err = getCompressedSingleShot(response);
-  elseif request.Url.path == "/xscreen.bmp" then
-    success, err = getSingleShot(response);
-  elseif request.Url.path == "/screen" then
-    success, err = handleStartupRequest(request, response)
-  elseif request.Url.path == "/favicon.ico" then
-    success, err = FileService.SendFile("favicon.ico", response)
-  elseif request.Url.path == "/jquery.js" then
-    success, err = FileService.SendFile("jquery.js", response)
-  else
-	  response:writeHead("404");
-	  success, err = response:writeEnd();
-  end
-
-  -- Recycle the socket
-  server:HandleRequestFinished(request)
-end
-
-
---[[ 
-  Start running the service 
---]]
-server = HttpServer(serviceport, OnRequest);
-server:run();
-]=]
