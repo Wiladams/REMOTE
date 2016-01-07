@@ -1,3 +1,5 @@
+_G.TURBO_SSL = true -- SSL must be enabled for WebSocket support!
+
 local ffi = require("ffi")
 local turbo = require("turbo")
 
@@ -133,14 +135,7 @@ function StartupHandler:get(...)
   return true
 end
 
-local app = turbo.web.Application({
-  {"/(jquery%.js)", turbo.web.StaticFileHandler, "./jquery.js"},
-  {"/(favicon%.ico)", turbo.web.StaticFileHandler, "./favicon.ico"},
-  {"/grab%.bmp(.*)$", GrabHandler},
-  {"/screen", StartupHandler},
-})
 
-turbo.log.categories.success = false;
 
 local function onLoop(ioinstance)
   if loop then
@@ -154,6 +149,25 @@ local function onInterval(ioinstance)
     loop()
   end
 end
+
+
+local WSExHandler = class("WSExHandler", turbo.websocket.WebSocketHandler)
+
+function WSExHandler:on_message(msg)
+    self:write_message("Hello World.")
+end
+
+
+local app = turbo.web.Application({
+  {"/(jquery%.js)", turbo.web.StaticFileHandler, "./jquery.js"},
+  {"/(favicon%.ico)", turbo.web.StaticFileHandler, "./favicon.ico"},
+  {"/grab%.bmp(.*)$", GrabHandler},
+  {"/screen", StartupHandler},
+  {"^/ws$", WSExHandler}
+})
+
+turbo.log.categories.success = false;
+
 
 
 function run()
