@@ -2,9 +2,9 @@ package.path = "../?.lua;"..package.path;
 
 --test_drawing.lua
 
+local bmp = require("tflremote.bmpcodec")
+local DrawingContext = require("tflremote.DrawingContext")
 local colors = require("colors")
-local bmp = require("bmpcodec")
-local DrawingContext = require("DrawingContext")
 local FileStream = require("filestream")
 
 local awidth = 640

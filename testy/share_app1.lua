@@ -9,19 +9,22 @@ local height = 240;
 local graphPort = size(width, height)
 local yoffset = 0;
 
+local redhalf = colors.RGBA(127, 0, 0, 255);
+local greenhalf = colors.RGBA(0, 127, 0, 255);
+local bluehalf = colors.RGBA(0, 0, 127, 255);
 
 function draw()
 	graphPort:rect(0,0,width, height, colors.black)
 
-	graphPort:setPixel(10, 10, colors.white)
-
-	graphPort:hline(10, yoffset, 100, colors.red)
-	graphPort:hline(110, yoffset, 100, colors.green)
-	graphPort:hline(210, yoffset, 100, colors.blue)
 
 	graphPort:rect(10, 30, 100, 100, colors.red)
 	graphPort:rect(110, 30, 100, 100, colors.green)
 	graphPort:rect(210, 30, 100, 100, colors.blue)
+
+	graphPort:hline(10, yoffset, 100, redhalf);
+	graphPort:hline(110, yoffset, 100, greenhalf);
+	graphPort:hline(210, yoffset, 100, bluehalf);
+
 end
 
 function loop()

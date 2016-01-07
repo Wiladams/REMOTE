@@ -13,6 +13,7 @@ local MemoryStream = require("tflremote.memorystream")
 --]]
 local serviceport = tonumber(arg[1]) or 8080
 
+local FrameInterval = 100;
 local ImageBitCount = 32;
 local ScreenWidth = nil;
 local ScreenHeight = nil;
@@ -82,11 +83,15 @@ local StartupHandler = class("StartupHandler", turbo.web.RequestHandler)
 local startupContent = nil;
 
 local function loadStartupContent(self)
+    print("loadStartupContent; request.host: ", self.request.host)
+    --print("loadStartupContent, host, headers: ", self.host, self.headers)
+    --print();
+
     -- load the file into memory
-    local fs, err = io.open("viewcanvas.htm")
+    --local fs, err = io.open("viewcanvas.htm")
     --local fs, err = io.open("viewscreen_simple.htm")
     --local fs, err = io.open("viewscreen.htm")
-    --local fs, err = io.open("sharescreen.htm")
+    local fs, err = io.open("sharescreen.htm")
 
     if not fs then
       self:set_status(500)
@@ -101,13 +106,14 @@ local function loadStartupContent(self)
     -- assume content looks like this:
     -- <?hostip?>:<?serviceport?>
     local subs = {
-      ["authority"]     = self:get_header("host"),
+      ["authority"]     = self.request.host;
       --["hostip"]      = net:GetLocalAddress(),
-      ["httpbase"]      = self:get_header("x-bhut-http-url-base"),
-      ["websocketbase"] = self:get_header("x-bhut-ws-url-base"),
+      --["httpbase"]      = self:get_header("x-rmt-http-url-base"),
+      --["websocketbase"] = self:get_header("x-rmt-ws-url-base"),
+      ["websocketbase"] = "ws://"..self.request.host..'/',
       ["serviceport"]   = serviceport,
 
-      ["frameinterval"] = 100,
+      ["frameinterval"] = FrameInterval,
       ["capturewidth"]  = captureWidth,
       ["captureheight"] = captureHeight,
       ["imagewidth"]    = ImageWidth,
@@ -117,6 +123,7 @@ local function loadStartupContent(self)
     }
 
     startupContent = string.gsub(content, "%<%?(%a+)%?%>", subs)
+    
     --print(startupContent)
 end
 
@@ -131,8 +138,16 @@ function StartupHandler:get(...)
   self:add_header("Content-Type", "text/html")
   self:add_header("Connection", "Keep-Alive")
   self:write(startupContent);
+  self:flush();
 
   return true
+end
+
+local WSExHandler = class("WSExHandler", turbo.websocket.WebSocketHandler)
+
+function WSExHandler:on_message(msg)
+  print("WSExHandler:on_message: ", msg)
+    self:write_message("Hello World.")
 end
 
 
@@ -151,11 +166,7 @@ local function onInterval(ioinstance)
 end
 
 
-local WSExHandler = class("WSExHandler", turbo.websocket.WebSocketHandler)
 
-function WSExHandler:on_message(msg)
-    self:write_message("Hello World.")
-end
 
 
 local app = turbo.web.Application({
@@ -163,8 +174,9 @@ local app = turbo.web.Application({
   {"/(favicon%.ico)", turbo.web.StaticFileHandler, "./favicon.ico"},
   {"/grab%.bmp(.*)$", GrabHandler},
   {"/screen", StartupHandler},
-  {"^/ws$", WSExHandler}
+  {"/ws/uiosocket", WSExHandler}
 })
+
 
 turbo.log.categories.success = false;
 

@@ -18,10 +18,11 @@
           Authority = '<?authority?>'
           HttpBase = '<?httpbase?>'
           WebSocketBase = '<?websocketbase?>'
-          HostIp = '<?hostip?>'
-          ServicePort = <?serviceport?>
+          //HostIp = '<?hostip?>'
+          //ServicePort = <?serviceport?>
 
-      		var uioUri = WebSocketBase + 'ws/'+Authority+'/uiosocket'
+      		//var uioUri = WebSocketBase + 'ws/'+Authority+'/uiosocket'
+          var uioUri = WebSocketBase + 'ws/uiosocket'
 
       		function eventWindowLoaded()
       		{
@@ -37,7 +38,7 @@
    				if (!document.images) 
    					return;
    				
-          		var asrc = "./screen.bmp?"+Math.random();
+          		var asrc = "./grab.bmp?"+Math.random();
           		if (HttpBase != "<?httpbase?>") {
             		asrc = HttpBase + 'http/' + Authority + asrc;
           		}
