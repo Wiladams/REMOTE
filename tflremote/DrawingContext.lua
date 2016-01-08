@@ -6,6 +6,17 @@ local function GetAlignedByteCount(width, bitsPerPixel, byteAlignment)
     return nbytes + (byteAlignment - (nbytes % byteAlignment)) % 4
 end
 
+local function RANGEMAP(x, a, b, c, d)
+	return c + ((x-a)/(b-a)*(d-c))
+end
+
+local function CLIP(x, a, b)
+	if x < a then return a end
+	if x > b then return b end
+
+	return x;
+end
+
 
 local DrawingContext = {}
 setmetatable(DrawingContext, {
@@ -57,8 +68,10 @@ function DrawingContext.setPixel(self, x, y, value)
 end
 
 function DrawingContext.hline(self, x, y, length, value)
+	local offset = y*self.width+x;
 	while length > 0 do
-		self:setPixel(x+length-1, y, value)
+		self.data[offset] = value;
+		offset = offset + 1;
 		length = length-1;
 	end
 end

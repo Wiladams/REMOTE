@@ -64,36 +64,36 @@
 		
 		$("#screendiv").keydown(function(e){
       		//uioSocket.send("{action='keydown';which="+e.which+"}");
-          uioSocket.send("{action='keydown';keyCode="+e.keyCode+"}");
+          uioSocket.send("{action='keyDown';keyCode="+e.keyCode+"}");
 		});
 
 		$("#screendiv").keyup(function(e){
-      		uioSocket.send("{action='keyup';keyCode="+e.keyCode+"}");
+      		uioSocket.send("{action='keyUp';keyCode="+e.keyCode+"}");
 		});
 
     $("#screendiv").keypress(function(e){
-          uioSocket.send("{action='keypress';which="+e.which+"}");
+          uioSocket.send("{action='keyPress';which="+e.which+"}");
     });
 
 		$("#screendiv").mousedown(function(e){
 			var x = map(e.pageX, 0,ImageWidth, 0,CaptureWidth);
 			var y = map(e.pageY, 0,ImageHeight, 0,CaptureHeight);
 
-      uioSocket.send("{action='mousedown';which="+e.which+";x="+x+";y="+y+"}");
+      uioSocket.send("{action='mouseDown';which="+e.which+";x="+x+";y="+y+"}");
  		});
 
 		$("#screendiv").mouseup(function(e){
 			var x = map(e.pageX, 0,ImageWidth, 0,CaptureWidth);
 			var y = map(e.pageY, 0,ImageHeight, 0,CaptureHeight);
 
-      uioSocket.send("{action='mouseup';which="+e.which+";x="+x+";y="+y+"}");
+      uioSocket.send("{action='mouseUp';which="+e.which+";x="+x+";y="+y+"}");
 		});
 
  		$("#screendiv").mousemove(function(e){			
 			var x = map(e.pageX, 0,ImageWidth, 0,CaptureWidth);
 			var y = map(e.pageY, 0,ImageHeight, 0,CaptureHeight);
 
-      		uioSocket.send("{action='mousemove';x="+x+";y="+y+"}");
+      		uioSocket.send("{action='mouseMove';x="+x+";y="+y+"}");
  		});
 	</script>
 </html>

@@ -12,6 +12,7 @@ local MemoryStream = require("tflremote.memorystream")
   Application Variables
 --]]
 local serviceport = tonumber(arg[1]) or 8080
+local DrawInterval = 1000 / 60;
 
 local FrameInterval = 100;
 local ImageBitCount = 32;
@@ -63,8 +64,7 @@ end
 local GrabHandler = class("GrabHandler", turbo.web.RequestHandler)
 
 function GrabHandler:get(...)
-  --turbo.log.devel("ScreenHandler: "..self.host)
-
+  --turbo.log.devel("ScreenHandler: "..self.request.host)
   local bytesWritten = writeImage(mstream, graphPort);
 
   --print("STREAM: ", bytesWritten)
@@ -151,11 +151,7 @@ function WSExHandler:on_message(msg)
   local f = loadstring("return "..msg)
   if not f then return end
 
---print("f: ", f)
-
   local tbl = f();
-
---print("type(tbl): ", type(tbl))
 
   if type(tbl) ~= "table" then
     return;
@@ -164,47 +160,10 @@ function WSExHandler:on_message(msg)
   self:handleIOActivity(tbl)
 end
 
-local activityMap = {
-  mousedown = mouseDown;
-  mousemove = mouseMove;
-  mouseup = mouseUp;
-
-  keydown = keyDown;
-  keyup = keyUp;
-  keypress = keyPress;
-}
-
-local function lookupActionHandler(action)
-  local handler = activityMap[action]
-  if handler then
-    return handler;
-  end
-
-  if action == "mousedown" then
-    handler = mouseDown;
-  elseif action == "mouseup" then
-    handler = mouseUp;
-  elseif action == "mousemove" then
-    handler = mouseMove;
-  elseif action == "keydown" then
-    handler = keyDown;
-  elseif action == "keyup" then
-    handler = keyUp;
-  elseif action == "keypress" then
-    handler = keyPress;
-  end
-
-  activityMap[action] = handler;
- 
-  return handler;
-end
 
 function WSExHandler:handleIOActivity(activity)
-  --print("Activity.action: ", activity.action)
 
-  local handler = lookupActionHandler(activity.action)
-
-  --print("Handler: ", handler)
+  local handler = _G[activity.action];
 
   if not handler then return end
 
@@ -245,7 +204,7 @@ function run()
   app:listen(serviceport)
   local ioinstance = turbo.ioloop.instance()
   
-  ioinstance:set_interval(30, onInterval, ioinstance)
+  ioinstance:set_interval(DrawInterval, onInterval, ioinstance)
   --ioinstance:add_callback(onLoop, ioinstance)
 
   ioinstance:start()
