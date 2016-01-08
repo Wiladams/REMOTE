@@ -7,6 +7,7 @@ local NetInteractor = require("tflremote.sharer")
 local colors = require("colors")
 local keycodes = require("tflremote.jskeycodes")
 
+local random = math.random
 
 local width = 640;
 local height = 480;
@@ -46,38 +47,28 @@ local function whichRect(areas, x, y)
 	return nil;
 end
 
-
-function mouseMove(activity)
-	targetarea = whichRect(areas, activity.x, activity.y)
+function mouseDown()
+	-- clear the screen
+	graphPort:clearAll();
 end
 
+function drawRandomLine()
+	local x1 = random(width)
+	local y1 = random(height)
+	local x2 = random(width)
+	local y2 = random(height)
 
-function draw()
-	--graphPort:rect(0,0,width, height, colors.black)
-	graphPort:clearAll();
+	local c = colors.RGBA(random(255), random(255), random(255))
 
-	for _, area in ipairs(areas) do
-		graphPort:frameRect(area.x, area.y, area.width, area.height, area.color);
-	end
-
-	-- draw the current hover area in yellow
-	if targetarea then
-		graphPort:fillRect(targetarea.x, targetarea.y, targetarea.width, targetarea.height, colors.darkyellow)
-	end
-
-	graphPort:hline(10, yoffset, 100, redhalf);
-	graphPort:hline(110, yoffset, 100, greenhalf);
-	graphPort:hline(210, yoffset, 100, bluehalf);
+	graphPort:line(x1, y1, x2, y2, c);
 
 end
 
 function loop()
-	yoffset = yoffset + 1
-	if yoffset >= height then 
-		yoffset = 0;
+	-- draw some random lines
+	for i=1, 20 do
+		drawRandomLine();
 	end
-
-	draw()
 end
 
 

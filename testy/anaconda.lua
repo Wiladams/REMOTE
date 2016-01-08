@@ -1,70 +1,69 @@
-#include <stdio.h>
-#include <bios.h>
-#include <graphics.h>
-#include <stdlib.h>
-#define UP 18432
-#define DOWN 20480
-#define RIGHT 19712
-#define LEFT 19200
-#define ENTER 7181
-#define W 4471
-#define S 8051
-#define A 7777
-#define D 8292
-#define HIT 1
-#define NOTYET 0
-#define RED 1
-#define BLUE 2
-#define YES 1
-#define NO 0
-#define GAMEOVER -1
+package.path = "../?.lua;"..package.path;
 
-int x1[175],y1[175],dirx1[175],diry1[175],i;
-int x2[175],y2[175],dirx2[175],diry2[175],sounds = NO;
-int lx1,ly1,lx2,ly2,target = HIT,c = 300,clr = 0;
-int red_score = 0,blue_score = 0,length1=10,length2=10;
-int chance1 = 5,chance2 = 5,play1=0,play2=0;
+local NetInteractor = require("tflremote.sharer")
 
-main()
-{
-	int gd = DETECT,gm,key;
-	char r;
-	initgraph(&gd,&gd,"c:\\tc");
-	printf("\nSound Y/N  :");
-	r = getch();
-	if(r == 'y'|| r == 'Y')
-		sounds = YES;
-	setcolor(1);
-	rectangle(70,90,560,430);
-	setbkcolor(15);
-	rectangle(5,110,70,150);
-	settextstyle(5,0,0);
-		outtextxy(19,115,"Score");
-	rectangle(560,110,625,150);
-	setcolor(12);
-		outtextxy(570,115,"Score");
-	setfillstyle(SOLID_FILL,1);
-	floodfill(10,10,1);
-	setcolor(12);
-	settextstyle(1,0,4);
-		outtextxy(180,30,"A n a c o n d A");
-	draw_mid_box();
-	for (i=0;i<10;i++)
-	{
-		x1[i] = 400;
-		y1[i] = 240;
-		dirx1[i] = diry1[i] = 0;
-		x2[i] = 200;
-		y2[i] = 240;
-		dirx2[i] = diry2[i] = 0;
-	}
 
-	reset_game(0);
-	while(1)
-	{
-/*		if (sounds == YES)
-			sound(43);*/
+
+local colors = require("colors")
+local keycodes = require("tflremote.jskeycodes")
+
+
+local width = 640;
+local height = 480;
+local graphPort = size(width, height)
+
+
+
+local UP =18432
+local DOWN =20480
+local RIGHT =19712
+local LEFT =19200
+local ENTER =7181
+local W =4471
+local S =8051
+local A =7777
+local D =8292
+
+local HIT =1
+local NOTYET =0
+local RED =1
+local BLUE =2
+local YES =1
+local NO =0
+local GAMEOVER =-1
+
+int x1[175],
+int y1[175],
+int dirx1[175],
+int diry1[175]
+local i;
+
+int x2[175];
+int y2[175]
+int dirx2[175],
+int diry2[175],
+
+local sounds = false;
+
+local lx1,ly1,lx2,ly2;
+local target = HIT;
+local c = 300;
+local clr = 0;
+local red_score = 0;
+local blue_score = 0;
+local length1=10;
+local length2=10;
+local chance1 = 5;
+local chance2 = 5;
+local play1=0;
+local play2=0;
+
+
+local function loop()
+	while(true) do
+	
 		check();
+		
 		if (target == HIT)
 		{
 			disp_score();
@@ -177,13 +176,57 @@ main()
 		}
 		delay(15);
 		nosound();
+	end
+end
+
+local function main()
+
+	int gd = DETECT,gm,key;
+	char r;
+	initgraph(&gd,&gd,"c:\\tc");
+	printf("\nSound Y/N  :");
+	r = getch();
+	if(r == 'y' or r == 'Y') then
+		sounds = YES;
+	end
+
+	setcolor(1);
+	
+	rectangle(70,90,560,430);
+	setbkcolor(15);
+	rectangle(5,110,70,150);
+	settextstyle(5,0,0);
+		outtextxy(19,115,"Score");
+	
+	rectangle(560,110,625,150);
+	
+	setcolor(12);
+		outtextxy(570,115,"Score");
+	
+	setfillstyle(SOLID_FILL,1);
+	floodfill(10,10,1);
+	setcolor(12);
+	settextstyle(1,0,4);
+		outtextxy(180,30,"A n a c o n d A");
+	draw_mid_box();
+	for (i=0;i<10;i++)
+	{
+		x1[i] = 400;
+		y1[i] = 240;
+		dirx1[i] = diry1[i] = 0;
+		x2[i] = 200;
+		y2[i] = 240;
+		dirx2[i] = diry2[i] = 0;
 	}
+
+	reset_game(0);
+
 	closegraph();
 
 }
 
-newtarget()
-{
+local function newtarget()
+
 	lx1 =0;
 	ly2 = 0;
 	clr = (clr == 6)?1:clr+1;
@@ -198,10 +241,10 @@ newtarget()
 	setlinestyle(0,0,THICK_WIDTH);
 	line(lx1,ly1,lx2,ly2);
 	target = NOTYET;
-}
+end
 
-check()
-{
+local function check()
+
 	int no = -1;
 	/*left wall checking */
 	if (y1[0]>89 && y1[0]<431  && x1[0]<=71)
@@ -364,10 +407,10 @@ check()
 		}
 	no++;
 	}
-}
+end
 
-reset_game(int player)
-{
+local function reset_game(int player)
+
 	int cr,xxx = 15,yyy = 180;
 	out_sound();
 	setlinestyle(0,0,NORM_WIDTH);
@@ -405,28 +448,28 @@ reset_game(int player)
 		yyy+=20;
 	}
 	setlinestyle(0,0,THICK_WIDTH);
-}
+end
 
 
-disp_score()
-{
+local funtion disp_score()
+
 		gotoxy(3,9);
 		printf("%d ",blue_score);
 		gotoxy(72,9);
 		printf("%d ",red_score);
-}
+end
 
-draw_mid_box()
-{
+local function draw_mid_box()
+
 	setcolor(1);
 	line(270,230,330,230);
 	line(270,300,330,300);
 	line(260,240,260,290);
 	line(340,240,340,290);
-}
+end
 
-out_sound()
-{
+local function out_sound()
+
 	int s;
 	if (sounds == YES)
 	for(s = 5000;s>100;s-=50)
@@ -436,10 +479,10 @@ out_sound()
 		nosound();
 		delay(3);
 	}
-}
+end
 
-hit_sound()
-{
+local function hit_sound()
+
 	if (sounds == YES)
 	{
 		sound(950);
@@ -455,9 +498,10 @@ hit_sound()
 		sound(5950);
 		nosound();
 	}
-}
-reset_screen()
-{
+end
+
+local function reset_screen()
+
 	for(i=0;i<length1;i++)
 		putpixel(x1[i],y1[i],15);
 	for(i=0;i<length2;i++)
@@ -472,6 +516,7 @@ reset_screen()
 		}
 		length1 = 10;
 	}
+
 	for (i=0;i<length2;i++)
 	{
 		if (play2 != GAMEOVER)
@@ -486,9 +531,11 @@ reset_screen()
         setlinestyle(0,0,THICK_WIDTH);
 	line(lx1,ly1,lx2,ly2);
 	newtarget();
-}
-end_game(int player)
-{
+end
+
+
+local function end_game(int player)
+
 
 	if (player == 1)
 	{
@@ -517,9 +564,10 @@ end_game(int player)
 		getch();
 		exit(0);
 	}
-}
-length_change(int player)
-{
+end
+
+local function length_change(int player)
+
 	if (player == 1 && (length2+3)<175)
 	{
 		for (i=length1;i<length1+3;i++)
@@ -542,4 +590,7 @@ length_change(int player)
 		}
 		length2+=3;
 	}
-}
+end
+
+
+run()
