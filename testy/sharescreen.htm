@@ -50,12 +50,9 @@
 
 	<body style="margin:0px">
     	<div id="screendiv" tabindex="-1" 
-    		style="width:" + ImageWidth + "px; height:"+ImageHeight+"px; margin: 0px 0px 0px 0px; background:yellow; border:0px; groove;" 
-    		onselectstart="return false" 
-    		onmousedown="return false" 
-    		onkeydown="return false" >
-
-			<img src="/screen.bmp" name="myScreen">
+    		style="width:" + ImageWidth + "px; height:"+ImageHeight+"px; margin: 0px 0px 0px 0px; background:yellow; border:0px; groove;"
+        onselectstart="return false" >
+			<img src="/grab.bmp" name="myScreen">
 		</div>
 	</body>
 
@@ -66,32 +63,37 @@
 		}
 		
 		$("#screendiv").keydown(function(e){
-      		uioSocket.send("action=keydown;which="+e.which);
+      		//uioSocket.send("{action='keydown';which="+e.which+"}");
+          uioSocket.send("{action='keydown';keyCode="+e.keyCode+"}");
 		});
 
 		$("#screendiv").keyup(function(e){
-      		uioSocket.send("action=keyup;which="+e.which);
+      		uioSocket.send("{action='keyup';keyCode="+e.keyCode+"}");
 		});
+
+    $("#screendiv").keypress(function(e){
+          uioSocket.send("{action='keypress';which="+e.which+"}");
+    });
 
 		$("#screendiv").mousedown(function(e){
 			var x = map(e.pageX, 0,ImageWidth, 0,CaptureWidth);
 			var y = map(e.pageY, 0,ImageHeight, 0,CaptureHeight);
 
-      		uioSocket.send("action=mousedown;which="+e.which+";x="+x+";y="+y);
+      uioSocket.send("{action='mousedown';which="+e.which+";x="+x+";y="+y+"}");
  		});
 
 		$("#screendiv").mouseup(function(e){
 			var x = map(e.pageX, 0,ImageWidth, 0,CaptureWidth);
 			var y = map(e.pageY, 0,ImageHeight, 0,CaptureHeight);
 
-      		uioSocket.send("action=mouseup;which="+e.which+";x="+x+";y="+y);
+      uioSocket.send("{action='mouseup';which="+e.which+";x="+x+";y="+y+"}");
 		});
 
  		$("#screendiv").mousemove(function(e){			
 			var x = map(e.pageX, 0,ImageWidth, 0,CaptureWidth);
 			var y = map(e.pageY, 0,ImageHeight, 0,CaptureHeight);
 
-      		uioSocket.send("action=mousemove;x="+x+";y="+y);
+      		uioSocket.send("{action='mousemove';x="+x+";y="+y+"}");
  		});
 	</script>
 </html>

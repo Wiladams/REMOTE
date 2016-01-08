@@ -33,6 +33,8 @@ function DrawingContext.init(self, width, height, data)
 
 		rowsize = rowsize;
 		pixelarraysize = pixelarraysize;
+
+		SpanBuffer = ffi.new("int32_t[?]", width);
 	}
 	setmetatable(obj, DrawingContext_mt)
 
@@ -40,11 +42,14 @@ function DrawingContext.init(self, width, height, data)
 end
 
 function DrawingContext.new(self, width, height, data)
-	data = data or ffi.new("int32_t[?]", width*height*4)
+	data = data or ffi.new("int32_t[?]", width*height)
 	return self:init(width, height, data)
 end
 
 
+function DrawingContext.clearAll(self)
+	ffi.fill(ffi.cast("char *", self.data), self.width*self.height*4)
+end
 
 function DrawingContext.setPixel(self, x, y, value)
 	local offset = y*self.width+x;
@@ -58,9 +63,20 @@ function DrawingContext.hline(self, x, y, length, value)
 	end
 end
 
+function DrawingContext.hspan(self, x, y, length, span)
+	local dst = ffi.cast("char *", self.data) + (y*self.width*4)+(x*4)
+	ffi.copy(dst, span, length*ffi.sizeof("int32_t"))
+end
+
 function DrawingContext.rect(self, x, y, width, height, value)
+	local length = width;
+	while length > 0 do
+		self.SpanBuffer[length-1] = value;
+		length = length-1;
+	end
+
 	while height > 0 do
-		self:hline(x, y+height-1, width, value)
+		self:hspan(x, y+height-1, width, self.SpanBuffer)
 		height = height - 1;
 	end
 end

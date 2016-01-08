@@ -16,6 +16,8 @@ local exports = {
 	green = RGBA(0,255,0);
 	red = RGBA(255, 0, 0);
 
+	yellow = RGBA(255, 255, 0);
+	darkyellow = RGBA(127, 127, 0);
 }
 
 return exports

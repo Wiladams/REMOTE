@@ -146,8 +146,69 @@ end
 local WSExHandler = class("WSExHandler", turbo.websocket.WebSocketHandler)
 
 function WSExHandler:on_message(msg)
-  print("WSExHandler:on_message: ", msg)
-    self:write_message("Hello World.")
+  --print("WSExHandler:on_message: ", msg)
+  -- assume the msg is a lua string, so parse it
+  local f = loadstring("return "..msg)
+  if not f then return end
+
+--print("f: ", f)
+
+  local tbl = f();
+
+--print("type(tbl): ", type(tbl))
+
+  if type(tbl) ~= "table" then
+    return;
+  end
+
+  self:handleIOActivity(tbl)
+end
+
+local activityMap = {
+  mousedown = mouseDown;
+  mousemove = mouseMove;
+  mouseup = mouseUp;
+
+  keydown = keyDown;
+  keyup = keyUp;
+  keypress = keyPress;
+}
+
+local function lookupActionHandler(action)
+  local handler = activityMap[action]
+  if handler then
+    return handler;
+  end
+
+  if action == "mousedown" then
+    handler = mouseDown;
+  elseif action == "mouseup" then
+    handler = mouseUp;
+  elseif action == "mousemove" then
+    handler = mouseMove;
+  elseif action == "keydown" then
+    handler = keyDown;
+  elseif action == "keyup" then
+    handler = keyUp;
+  elseif action == "keypress" then
+    handler = keyPress;
+  end
+
+  activityMap[action] = handler;
+ 
+  return handler;
+end
+
+function WSExHandler:handleIOActivity(activity)
+  --print("Activity.action: ", activity.action)
+
+  local handler = lookupActionHandler(activity.action)
+
+  --print("Handler: ", handler)
+
+  if not handler then return end
+
+  handler(activity)
 end
 
 
@@ -167,9 +228,13 @@ end
 
 
 
+turbo.log.categories.success = false;
 
 
-local app = turbo.web.Application({
+local app = nil;
+
+function run()
+  app = turbo.web.Application({
   {"/(jquery%.js)", turbo.web.StaticFileHandler, "./jquery.js"},
   {"/(favicon%.ico)", turbo.web.StaticFileHandler, "./favicon.ico"},
   {"/grab%.bmp(.*)$", GrabHandler},
@@ -177,12 +242,6 @@ local app = turbo.web.Application({
   {"/ws/uiosocket", WSExHandler}
 })
 
-
-turbo.log.categories.success = false;
-
-
-
-function run()
   app:listen(serviceport)
   local ioinstance = turbo.ioloop.instance()
   
