@@ -51,4 +51,25 @@ end
 run()
 ```
 
-A web page will be served up, with your imagery as the backing store.
+A web page will be served up, with your imagery as the backing store.  In addition,
+keyboard and mouse events are automatically tracked, and sent back to the application.
+These events can be handled by simiply implementing various optional handler functions:
+
+```lua
+function mouseMove(activity)
+	targetarea = whichRect(areas, activity.x, activity.y)
+end
+
+function keyPress(activity)
+	print("keyPress: ", string.char(activity.which))
+end
+
+function keyDown(activity)
+	print("keyDown: ", activity.keyCode, keycodes[activity.keyCode])
+end
+```
+
+The mouse events are: mouseMove, mouseDown, mouseUp
+
+The keyboard events are: keyDown, keyUp, keyPress
+
