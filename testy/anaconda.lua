@@ -32,11 +32,11 @@ local YES =1
 local NO =0
 local GAMEOVER =-1
 
-int x1[175],
-int y1[175],
-int dirx1[175],
-int diry1[175]
-local i;
+int x1[175];
+int y1[175];
+int dirx1[175];
+int diry1[175];
+--local i;
 
 int x2[175];
 int y2[175]
@@ -59,32 +59,23 @@ local play1=0;
 local play2=0;
 
 
-local function loop()
-	while(true) do
+local function putpixel(x,y,value)
+	graphPort:setPixel(x, y, c);
+end
+
+
+local keyfuncs = {}
+function keyfuncs.uparrow()
+	if (play1 == GAMEOVER)
+		break;
+	if (diry1[0] == 1)
+		break;
 	
-		check();
-		
-		if (target == HIT)
-		{
-			disp_score();
-			setcolor(15);
-			line(lx1,ly1,lx2,ly2);
-			newtarget();
-		}
-		if (kbhit())
-		{
-			key = bioskey(0);
-			switch(key)
-			{
-				case UP:
-					if (play1 == GAMEOVER)
-						break;
-					if (diry1[0] == 1)
-						break;
-					diry1[0] = -1;
-					dirx1[0] = 0;
-					break;
-				case DOWN:
+	diry1[0] = -1;
+	dirx1[0] = 0;
+end
+
+function keyfuncs.downarrow()
 					if (play1 == GAMEOVER)
 						break;
 					if (diry1[0] == -1)
@@ -92,7 +83,9 @@ local function loop()
 					diry1[0] = 1;
 					dirx1[0] = 0;
 					break;
-				case RIGHT:
+end
+
+function keyfuncs.rightarrow()
 					if (play1 == GAMEOVER)
 						break;
 					if (dirx1[0] == -1)
@@ -100,7 +93,9 @@ local function loop()
 					dirx1[0] = 1;
 					diry1[0] = 0;
 					break;
-				case LEFT:
+end
+
+function keyfuncs.leftarrow()
 					if (play1 == GAMEOVER)
 						break;
 					if (dirx1[0] == 1)
@@ -108,7 +103,9 @@ local function loop()
 					dirx1[0] = -1;
 					diry1[0] = 0;
 					break;
-				case W:
+end
+
+function keyfuncs.w()
 					if (play2 == GAMEOVER)
 						break;
 					if (diry2[0] == 1)
@@ -116,7 +113,9 @@ local function loop()
 					diry2[0] = -1;
 					dirx2[0] = 0;
 					break;
-				case S:
+end
+
+function keyfuncs.s()
 					if (play2 == GAMEOVER)
 						break;
 					if (diry2[0] == -1)
@@ -124,7 +123,10 @@ local function loop()
 					diry2[0] = 1;
 					dirx2[0] = 0;
 					break;
-				case D:
+
+end
+
+function keyfuncs.d()
 					if (play2 == GAMEOVER)
 						break;
 					if (dirx2[0] == -1)
@@ -132,7 +134,10 @@ local function loop()
 					dirx2[0] = 1;
 					diry2[0] = 0;
 					break;
-				case A:
+
+end
+
+function keyfuncs.a()
 					if (play2 == GAMEOVER)
 						break;
 					if (dirx2[0] == 1)
@@ -140,25 +145,53 @@ local function loop()
 					dirx2[0] = -1;
 					diry2[0] = 0;
 					break;
-				case ENTER:
-					nosound();
-					closegraph();
-					exit(0);
 
-			}
-		}
+end
+
+function keyfuncs.enter()
+	nosound();
+	closegraph();
+	exit(0);
+end
+
+function keyDown(activity)
+	local key = activity.keyCode;
+	local keyname = keycodes[activity.keyCode];
+
+	if keyfuncs[keyname] then
+		keyfuncs[keyname]()
+	end
+end
+
+local function loop()
+	while(true) do
+	
+		check();
+		
+		if (target == HIT) then
+			disp_score();
+			setcolor(15);
+			line(lx1,ly1,lx2,ly2);
+			newtarget();
+		end
+
+		-- kbhit
+
+
 		for (i=0;i<length1;i++)
 		{
 			x1[i]+=(2*dirx1[i]);
 			y1[i]+=(2*diry1[i]);
                         putpixel(x1[i],y1[i],12);
 		}
+		
 		for (i=0;i<length2;i++)
 		{
 			x2[i]+=(2*dirx2[i]);
 			y2[i]+=(2*diry2[i]);
 			putpixel(x2[i],y2[i],1);
 		}
+
 		putpixel(x1[length1-1],y1[length1-1],0);
 		putpixel(x2[length2-1],y2[length2-1],0);
 
