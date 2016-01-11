@@ -104,10 +104,10 @@ local function loadStartupContent(self)
     --print();
 
     -- load the file into memory
-    --local fs, err = io.open("viewcanvas.htm")
+    local fs, err = io.open("viewcanvas.htm")
     --local fs, err = io.open("viewscreen_simple.htm")
     --local fs, err = io.open("viewscreen.htm")
-    local fs, err = io.open("sharescreen.htm")
+    --local fs, err = io.open("sharescreen.htm")
 
     if not fs then
       self:set_status(500)
