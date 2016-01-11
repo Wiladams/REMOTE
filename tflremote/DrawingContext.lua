@@ -9,7 +9,7 @@ local function GetAlignedByteCount(width, bitsPerPixel, byteAlignment)
     return nbytes + (byteAlignment - (nbytes % byteAlignment)) % 4
 end
 
-local function RANGEMAP(x, a, b, c, d)
+function RANGEMAP(x, a, b, c, d)
 	return c + ((x-a)/(b-a)*(d-c))
 end
 

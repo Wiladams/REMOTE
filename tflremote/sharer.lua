@@ -12,7 +12,10 @@ local MemoryStream = require("tflremote.memorystream")
   Application Variables
 --]]
 local serviceport = tonumber(arg[1]) or 8080
-local DrawInterval = 1000 / 60;
+local ioinstance = nil;
+local LoopInterval = 1000 / 60;
+local LoopIntervalRef = nil;
+
 
 local FrameInterval = 100;
 local ImageBitCount = 32;
@@ -25,6 +28,19 @@ local graphPort = nil;
 local mstream = nil;
 local BmpImageSize = nil;
 
+function loopInterval(newInterval)
+
+  -- cancel the last interval
+  if ioinstance then
+    ioinstance:clear_interval(LoopIntervalRef);
+  end
+
+  LoopInterval = newInterval;
+  
+  if ioinstance then
+    LoopIntervalRef = ioinstance:set_interval(LoopInterval, onInterval, ioinstance)
+  end
+end
 
 
 function size(width, height)
@@ -202,9 +218,9 @@ function run()
 })
 
   app:listen(serviceport)
-  local ioinstance = turbo.ioloop.instance()
+  ioinstance = turbo.ioloop.instance()
   
-  ioinstance:set_interval(DrawInterval, onInterval, ioinstance)
+  loopIntervalRef = ioinstance:set_interval(LoopInterval, onInterval, ioinstance)
   --ioinstance:add_callback(onLoop, ioinstance)
 
   ioinstance:start()
