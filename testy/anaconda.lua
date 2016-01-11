@@ -1,16 +1,17 @@
 package.path = "../?.lua;"..package.path;
 
+local ffi = require("ffi")
 local NetInteractor = require("tflremote.sharer")
-
 
 
 local colors = require("colors")
 local keycodes = require("tflremote.jskeycodes")
+local bgi = require("bgi")
+local random = math.random
 
 
 local width = 640;
 local height = 480;
-local graphPort = size(width, height)
 
 
 
@@ -32,16 +33,68 @@ local YES =1
 local NO =0
 local GAMEOVER =-1
 
+local Player = {}
+local Player_mt = {
+	__index = Player
+}
+
+function Player.init(self, id, color)
+	local obj = {
+		id = id;
+		color = color;
+		x = ffi.new("int[175]");
+		y = ffi.new("int[175]");
+		dirx = ffi.new("int[175]");
+		diry = ffi.new("int[175]");
+
+		length = 1;
+		chance = 5;
+		score=0;
+	}
+	setmetatable(obj, Player_mt);
+
+	return obj;
+end
+
+function Player.new(self, id, color)
+	return self:init(id, color);
+end
+
+function Player.gameOver(self)
+	for i=0, self.length-1 do
+		self.x[i] = 0;
+		self.y[i] = 0;
+		self.dirx[i] = 0;
+		self.diry[i] = 0;
+	end
+	self.state = GAMEOVER;
+end
+
+function Player.lengthChange(self)
+	if (self.length+3) < 175 then
+	
+		for i=self.length, self.length+3-1 do
+		
+			self.x[i] = self.x[self.length-1];
+			self.y[i] = self.y[self.length-1];
+			self.dirx[i] = 0;
+			self.diry[i] = 0;
+		end
+		self.length = self.length + 3;
+	end
+end
+
+--[[
 int x1[175];
 int y1[175];
 int dirx1[175];
 int diry1[175];
---local i;
 
 int x2[175];
 int y2[175]
 int dirx2[175],
 int diry2[175],
+--]]
 
 local sounds = false;
 
@@ -58,14 +111,13 @@ local chance2 = 5;
 local play1=0;
 local play2=0;
 
-
-local function putpixel(x,y,value)
-	graphPort:setPixel(x, y, c);
-end
+local player1 = Player:new(1, colors.red);
+local player2 = Player:new(2, colors.blue);
 
 
 local keyfuncs = {}
 function keyfuncs.uparrow()
+--[[
 	if (play1 == GAMEOVER)
 		break;
 	if (diry1[0] == 1)
@@ -73,19 +125,25 @@ function keyfuncs.uparrow()
 	
 	diry1[0] = -1;
 	dirx1[0] = 0;
+--]]
 end
 
 function keyfuncs.downarrow()
-					if (play1 == GAMEOVER)
+--[[
+	if (player1.score == GAMEOVER) then
 						break;
+	end
+
 					if (diry1[0] == -1)
 						break;
 					diry1[0] = 1;
 					dirx1[0] = 0;
 					break;
+--]]
 end
 
 function keyfuncs.rightarrow()
+--[[
 					if (play1 == GAMEOVER)
 						break;
 					if (dirx1[0] == -1)
@@ -93,9 +151,11 @@ function keyfuncs.rightarrow()
 					dirx1[0] = 1;
 					diry1[0] = 0;
 					break;
+--]]
 end
 
 function keyfuncs.leftarrow()
+--[[
 					if (play1 == GAMEOVER)
 						break;
 					if (dirx1[0] == 1)
@@ -103,9 +163,11 @@ function keyfuncs.leftarrow()
 					dirx1[0] = -1;
 					diry1[0] = 0;
 					break;
+--]]
 end
 
 function keyfuncs.w()
+--[[
 					if (play2 == GAMEOVER)
 						break;
 					if (diry2[0] == 1)
@@ -113,9 +175,11 @@ function keyfuncs.w()
 					diry2[0] = -1;
 					dirx2[0] = 0;
 					break;
+--]]
 end
 
 function keyfuncs.s()
+--[[
 					if (play2 == GAMEOVER)
 						break;
 					if (diry2[0] == -1)
@@ -123,10 +187,11 @@ function keyfuncs.s()
 					diry2[0] = 1;
 					dirx2[0] = 0;
 					break;
-
+--]]
 end
 
 function keyfuncs.d()
+--[[
 					if (play2 == GAMEOVER)
 						break;
 					if (dirx2[0] == -1)
@@ -134,10 +199,11 @@ function keyfuncs.d()
 					dirx2[0] = 1;
 					diry2[0] = 0;
 					break;
-
+--]]
 end
 
 function keyfuncs.a()
+--[[
 					if (play2 == GAMEOVER)
 						break;
 					if (dirx2[0] == 1)
@@ -145,13 +211,13 @@ function keyfuncs.a()
 					dirx2[0] = -1;
 					diry2[0] = 0;
 					break;
-
+--]]
 end
 
 function keyfuncs.enter()
-	nosound();
+	--nosound();
 	closegraph();
-	exit(0);
+	--exit(0);
 end
 
 function keyDown(activity)
@@ -163,7 +229,9 @@ function keyDown(activity)
 	end
 end
 
+
 local function loop()
+--[[
 	while(true) do
 	
 		check();
@@ -210,18 +278,16 @@ local function loop()
 		delay(15);
 		nosound();
 	end
+--]]
 end
 
 local function main()
+	local graphPort = size(width, height)
 
-	int gd = DETECT,gm,key;
-	char r;
-	initgraph(&gd,&gd,"c:\\tc");
-	printf("\nSound Y/N  :");
-	r = getch();
-	if(r == 'y' or r == 'Y') then
-		sounds = YES;
-	end
+	--int gd = DETECT,gm,key;
+	--char r;
+	initgraph(graphPort,nil,"c:\\tc");
+
 
 	setcolor(1);
 	
@@ -242,24 +308,28 @@ local function main()
 	settextstyle(1,0,4);
 		outtextxy(180,30,"A n a c o n d A");
 	draw_mid_box();
-	for (i=0;i<10;i++)
-	{
-		x1[i] = 400;
-		y1[i] = 240;
-		dirx1[i] = diry1[i] = 0;
-		x2[i] = 200;
-		y2[i] = 240;
-		dirx2[i] = diry2[i] = 0;
-	}
+	for i=0, 9 do
+	
+		player1.x[i] = 400;
+		player1.y[i] = 240;
+		player1.dirx[i] = 0;
+		player1.diry[i] = 0;
 
-	reset_game(0);
 
-	closegraph();
+		player2.x[i] = 200;
+		player2.y[i] = 240;
+		player2.dirx[i] = 0;
+		player2.diry[i] = 0;
+	end
 
-}
+	reset_game();
+
+	--closegraph();
+end
+
 
 local function newtarget()
-
+--[[
 	lx1 =0;
 	ly2 = 0;
 	clr = (clr == 6)?1:clr+1;
@@ -274,131 +344,137 @@ local function newtarget()
 	setlinestyle(0,0,THICK_WIDTH);
 	line(lx1,ly1,lx2,ly2);
 	target = NOTYET;
+--]]
 end
 
 local function check()
-
+--[=[
 	int no = -1;
-	/*left wall checking */
-	if (y1[0]>89 && y1[0]<431  && x1[0]<=71)
+	-- left wall checking
+	if (y1[0]>89 and y1[0]<431  and x1[0]<=71)
 	{
 		reset_game(RED);
 		return;
 	}
-	if (y2[0]>89 && y2[0]<431  && x2[0]<=71)
+	if (y2[0]>89 and y2[0]<431  and x2[0]<=71)
 	{
 		reset_game(BLUE);
 		return;
 	}
-	/*right wall checking */
-	if (y1[0]>89 && y1[0]<431  && x1[0]>=560)
+
+	-- right wall checking
+	if (y1[0]>89 and y1[0]<431  and x1[0]>=560)
 	{
 			reset_game(RED);
 		return;
 	}
-	if (y2[0]>89 && y2[0]<431  && x2[0]>=560)
+	if (y2[0]>89 and y2[0]<431  and x2[0]>=560)
 	{
 		reset_game(BLUE);
 		return;
 	}
 
-	/*top wall checking */
-	if (x1[0]>69 && x1[0]<560  && y1[0]<=90)
+	--top wall checking 
+	if (x1[0]>69 and x1[0]<560  and y1[0]<=90)
 	{
 		reset_game(RED);
 		return;
 	}
-	if (x2[0]>69 && x2[0]<560  && y2[0]<=90)
+	if (x2[0]>69 and x2[0]<560  and y2[0]<=90)
 	{
 		reset_game(BLUE);
 		return;
 	}
 
-	/*bottom wall checking */
-	if (x1[0]>69 && x1[0]<560  && y1[0]>=430)
+	--bottom wall checking
+	if (x1[0]>69 and x1[0]<560  and y1[0]>=430)
 	{
 		reset_game(RED);
 		return;
 	}
-	if (x2[0]>69 && x2[0]<560  && y2[0]>=430)
+	if (x2[0]>69 and x2[0]<560  and y2[0]>=430)
 	{
 		reset_game(BLUE);
 		return;
 	}
 
-	/* top line checking */
-	if (x1[0]>269 && x1[0]<331 && (y1[0] == 230))
-	{
-		reset_game(RED);
-		return;
-	}
-
-	if (x2[0]>269 && x2[0]<331 && y2[0] == 230)
-	{
-		reset_game(BLUE);
-		return;
-	}
-	/* bottom line checking */
-	if (x1[0]>269 && x1[0]<331 && (y1[0] == 300))
+	-- top line checking
+	if (x1[0]>269 and x1[0]<331 and (y1[0] == 230))
 	{
 		reset_game(RED);
 		return;
 	}
 
-	if (x2[0]>269 && x2[0]<331 && y2[0] == 300)
+	if (x2[0]>269 and x2[0]<331 and y2[0] == 230)
 	{
 		reset_game(BLUE);
 		return;
 	}
-	/* left line checking */
-	if (y1[0]>240 && y1[0]<290 && (x1[0] == 260))
+
+	-- bottom line checking
+	if (x1[0]>269 and x1[0]<331 and (y1[0] == 300))
 	{
 		reset_game(RED);
 		return;
 	}
 
-	if (y2[0]>240 && y2[0]<290 && x2[0] == 260)
+	if (x2[0]>269 and x2[0]<331 and y2[0] == 300)
 	{
 		reset_game(BLUE);
 		return;
 	}
 
-	/* right line checking */
-	if (y1[0]>240 && y1[0]<290 && (x1[0] == 340))
+	-- left line checking
+	if (y1[0]>240 and y1[0]<290 and (x1[0] == 260))
 	{
 		reset_game(RED);
 		return;
 	}
 
-	if (y2[0]>240 && y2[0]<290 && x2[0] == 340)
+	if (y2[0]>240 and y2[0]<290 and x2[0] == 260)
 	{
 		reset_game(BLUE);
 		return;
 	}
-	/* RED hits BLUE */
+
+	-- right line checking
+	if (y1[0]>240 and y1[0]<290 and (x1[0] == 340))
+	{
+		reset_game(RED);
+		return;
+	}
+
+	if (y2[0]>240 and y2[0]<290 and x2[0] == 340)
+	{
+		reset_game(BLUE);
+		return;
+	}
+
+	-- RED hits BLUE
 	for (i=0;i<length2;i++)
 	{
-		if (x1[0] == x2[i] && y1[0] == y2[i])
+		if (x1[0] == x2[i] and y1[0] == y2[i])
 		{
 			reset_game(RED);
 			return;
 		}
 	}
-	/* BLUE hits RED */
+
+	-- BLUE hits RED 
 	for (i=0;i<length1;i++)
 	{
-		if (x2[0] == x1[i] && y2[0] == y1[i])
+		if (x2[0] == x1[i] and y2[0] == y1[i])
 		{
 			reset_game(BLUE);
 			return;
 		}
 	}
 
-	/* RED hits RED
+	--[[ RED hits RED
 	if (x1[0] != x1[1])
 		for (i=1;i<length1;i++)
 		{
-			if (x1[0] == x1[i] && (y1[0] == y1[i] || y1[0] == y1[i]+1))
+			if (x1[0] == x1[i] and (y1[0] == y1[i] || y1[0] == y1[i]+1))
 			{
 				reset_game(RED);
 				return;
@@ -408,48 +484,51 @@ local function check()
 	if (x2[0] != x2[1])
 		for (i=1;i<length2;i++)
 		{
-			if (x2[0] == x2[i]  && y2[0] == y2[i])
+			if (x2[0] == x2[i]  and y2[0] == y2[i])
 			{
 				reset_game(BLUE);
 				return;
 			}
-		}       */
+		}       --]]
 
-	/* target checking */
+	-- target checking
 	while(no<2)
 	{
 	for (i=ly1+no;i<=ly2+no;i++)
 		{
-			if (x1[0]>lx1-1 && x1[0]<lx2+1  && y1[0] == i)
+			if (x1[0]>lx1-1 and x1[0]<lx2+1  and y1[0] == i)
 			{
     				target = HIT;
 				hit_sound();
 				red_score+=5;
-				length_change(1);
+				player1:lengthChange();
+
 				return;
 			}
 
-			if (x2[0]>lx1-1 && x2[0]<lx2+1  && y2[0] == i)
+			if (x2[0]>lx1-1 and x2[0]<lx2+1  and y2[0] == i)
 			{
 				target = HIT;
 				hit_sound();
 				blue_score+=5;
-				length_change(2);
+				player2:lengthChange();
 				return;
 			}
 		}
-	no++;
+	no = no + 1;
 	}
+--]=]
 end
 
-local function reset_game(int player)
-
+local function reset_game(player)
+--[[
 	int cr,xxx = 15,yyy = 180;
-	out_sound();
+	--out_sound();
 	setlinestyle(0,0,NORM_WIDTH);
-	if (player == RED)
+	
+	if (player == RED) then
 	{
-		chance1--;
+		chance1 = chance1 - 1;
 		reset_screen();
 		if (chance1<0)
 			end_game(RED);
@@ -480,12 +559,12 @@ local function reset_game(int player)
 		line(xxx,yyy,xxx+45,yyy);
 		yyy+=20;
 	}
+--]]
 	setlinestyle(0,0,THICK_WIDTH);
 end
 
 
-local funtion disp_score()
-
+local function disp_score()
 		gotoxy(3,9);
 		printf("%d ",blue_score);
 		gotoxy(72,9);
@@ -493,7 +572,6 @@ local funtion disp_score()
 end
 
 local function draw_mid_box()
-
 	setcolor(1);
 	line(270,230,330,230);
 	line(270,300,330,300);
@@ -501,40 +579,9 @@ local function draw_mid_box()
 	line(340,240,340,290);
 end
 
-local function out_sound()
-
-	int s;
-	if (sounds == YES)
-	for(s = 5000;s>100;s-=50)
-	{
-		sound(s);
-		delay(2);
-		nosound();
-		delay(3);
-	}
-end
-
-local function hit_sound()
-
-	if (sounds == YES)
-	{
-		sound(950);
-		delay(30);
-		sound(1950);
-		delay(30);
-		sound(2950);
-		delay(30);
-		sound(3950);
-		delay(30);
-		sound(4950);
-		delay(30);
-		sound(5950);
-		nosound();
-	}
-end
 
 local function reset_screen()
-
+--[[
 	for(i=0;i<length1;i++)
 		putpixel(x1[i],y1[i],15);
 	for(i=0;i<length2;i++)
@@ -559,71 +606,35 @@ local function reset_screen()
 		}
 		length2 = 10;
 	}
+--]]
 	draw_mid_box();
 	setcolor(15);
         setlinestyle(0,0,THICK_WIDTH);
-	line(lx1,ly1,lx2,ly2);
-	newtarget();
+	--line(lx1,ly1,lx2,ly2);
+	--newtarget();
 end
 
 
-local function end_game(int player)
+local function end_game(player)
+	if (player == player1) then
+		player1:gameOver();
+	end
 
+	if (player == player2) then
+		player2:gameOver();
+	end
 
-	if (player == 1)
-	{
-		for (i=0;i<length1;i++)
-		{
-			x1[i] = 1;
-			y1[i] = 1;
-			dirx1[i] = diry1[i] = 0;
-		}
-		play1 = GAMEOVER;
-	}
-	if (player == 2)
-	{
-		for (i=0;i<length2;i++)
-		{
-			x2[i] = 0;
-			y2[i] = 0;
-			dirx2[i] = diry2[i] = 0;
-		}
-		play2 = GAMEOVER;
-	}
-	if (play1 == GAMEOVER && play2 == GAMEOVER)
-	{
+	if (player1.state == GAMEOVER and play2.state == GAMEOVER) then	
 		settextstyle(5,0,35);
 		outtextxy(265,260,"GAME OVER");
-		getch();
-		exit(0);
-	}
-end
-
-local function length_change(int player)
-
-	if (player == 1 && (length2+3)<175)
-	{
-		for (i=length1;i<length1+3;i++)
-		{
-			x1[i] = x1[length1-1];
-			y1[i] = y1[length1-1];
-			dirx1[i] = 0;
-			diry1[i] = 0;
-		}
-		length1+=3;
-	}
-	if (player == 2 && (length2+3)<175)
-	{
-		for (i=length2;i<length2+3;i++)
-		{
-			x2[i] = x2[length2-1];
-			y2[i] = y2[length2-1];
-			dirx2[i] = 0;
-			diry2[i] = 0;
-		}
-		length2+=3;
-	}
+		--getch();
+		--exit(0);
+	end
 end
 
 
+
+
+
+main()
 run()
