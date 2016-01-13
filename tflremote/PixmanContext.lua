@@ -29,6 +29,11 @@ local function sgn(x)
 	return 0
 end
 
+local function  POINT(x,y)
+    return ffi.new("pixman_point_fixed_t", pman.pixman_double_to_fixed (x), pman.pixman_double_to_fixed (y) )
+end
+
+
 local PixmanContext = {}
 setmetatable(PixmanContext, {
 	__call = function(self, ...)
@@ -172,15 +177,28 @@ function PixmanContext.frameRect(self, x, y, width, height, value)
 	self:vline(x+width-1, y, height, value);
 end
 
+
 function PixmanContext.frameTriangle(self, x1, y1, x2, y2, x3, y3, value)
-	local tri = pman.pixman_triangle_t();
---	print("TRI: ", tri)
+	print("TRI: ", tri)
+	local tris = pman.pixman_triangle_t();
 
-	tri.p1 = pman.pixman_point_fixed_t(pman.pixman_double_to_fixed(x1), pman.pixman_double_to_fixed(y1));
-	tri.p2 = pman.pixman_point_fixed_t(pman.pixman_double_to_fixed(x2), pman.pixman_double_to_fixed(y2));
-	tri.p3 = pman.pixman_point_fixed_t(pman.pixman_double_to_fixed(x3), pman.pixman_double_to_fixed(y3));
+	tris.p1 = pman.pixman_point_fixed_t(POINT(x1,y1));
+	tris.p2 = pman.pixman_point_fixed_t(POINT(x2,y2));
+	tris.p3 = pman.pixman_point_fixed_t(POINT(x3,y3));
 
-	pman.pixman_add_triangles (self.Handle, 0, 0, 1, tri);
+   	local color = ffi.new("pixman_color_t", { 0xffff, 0xffff, 0xffff, 0xffff });
+    local src_img = pman.pixman_image_create_solid_fill (color);
+
+
+    pman.pixman_composite_triangles (pman.PIXMAN_OP_ATOP_REVERSE,
+				src_img,
+				self.Handle,
+				pman.PIXMAN_a8,
+				0, 0,
+				0, 0,
+              	1, tris);
+
+    --pman.pixman_add_triangles (self.Handle, 0, 0, 1, tri);
 
 end
 
