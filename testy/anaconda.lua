@@ -19,6 +19,7 @@ local DIRDOWN = 2;
 local DIRLEFT = 3;
 local DIRRIGHT = 4;
 
+--[[
 local UP =18432
 local DOWN =20480
 local RIGHT =19712
@@ -28,6 +29,7 @@ local W =4471
 local S =8051
 local A =7777
 local D =8292
+--]]
 
 local HIT =1
 local NOTYET =0
@@ -42,6 +44,8 @@ local Player_mt = {
 	__index = Player
 }
 
+
+-- Definition of a single player in the game
 function Player.init(self, id, color)
 	local obj = {
 		id = id;
@@ -62,6 +66,40 @@ end
 
 function Player.new(self, id, color)
 	return self:init(id, color);
+end
+
+function Player.draw(self)
+	for i=0, self.length-1 do
+		self.x[i] =self.x[i] + (2*self.dirx[i]);
+		self.y[i] =self.y[i] + (2*self.diry[i]);
+        putpixel(self.x[i],self.y[i],12);
+	end
+	putpixel(self.x[self.length-1],self.y[self.length-1],0);
+	putpixel(self.x[0],self.y[0],1);
+end
+
+function Player.advance(self)
+	for i=self.length-1, 1, -1 do
+		self.dirx[i] = self.dirx[i-1];
+		self.diry[i] = self.diry[i-1];
+	end
+end
+
+
+function Player.reset(self, x, y)
+	for i=0, self.length-1 do
+		putpixel(self.x[i], self.y[i],15);
+	end
+
+	for i=0, self.length-1 do
+		if (self.state ~= GAMEOVER) then
+			self.x[i] = x;
+			self.y[i] = y;
+			self.dirx[i] = 0;
+			self.diry[i] = 0;
+		end
+		self.length = 10;
+	end
 end
 
 function Player.gameOver(self)
@@ -123,21 +161,10 @@ function Player.move(self, direction)
 	end
 end
 
---[[
-int x1[175];
-int y1[175];
-int dirx1[175];
-int diry1[175];
-
-int x2[175];
-int y2[175]
-int dirx2[175],
-int diry2[175],
---]]
 
 local sounds = false;
 
-local lx1,ly1,lx2,ly2;
+local lx1,ly1,lx2,ly2 = 0,0,0,0;
 local target = HIT;
 local c = 300;
 local clr = 0;
@@ -145,8 +172,6 @@ local red_score = 0;
 local blue_score = 0;
 local length1=10;
 local length2=10;
-local chance1 = 5;
-local chance2 = 5;
 local play1=0;
 local play2=0;
 
@@ -202,6 +227,66 @@ function keyDown(activity)
 	end
 end
 
+local function reset_game(player)
+
+	local cr = 0;
+	local xxx = 15;
+	local yyy = 180;
+
+
+	--out_sound();
+	setlinestyle(0,0,NORM_WIDTH);
+
+	if (player == player1) then
+	
+		player1.chance = player1.chance - 1;
+		reset_screen();
+		if player1.chance<0 then
+			end_game(player1);
+		end
+	end
+
+	if (player == player2) then
+	
+		player2.chance2 = player2.chance - 1;
+		reset_screen();
+		if (player2.chance<0) then
+			end_game(player2);
+		end
+	end
+
+
+	setlinestyle(0,0,NORM_WIDTH);
+	for i=0, 9 do
+		if i<player2.chance then
+			cr = 9;
+		else 
+			cr = 1;
+		end
+
+		setcolor(cr);
+		line(xxx,yyy,xxx+45,yyy);
+		yyy = yyy  + 20;
+	end
+
+	yyy = 180;
+	xxx = 580;
+	
+	for i=0, 9 do
+	
+		if i < player1.chance then 
+			cr = 12;
+		else 
+			cr = 1;
+		end
+
+		setcolor(cr);
+		line(xxx,yyy,xxx+45,yyy);
+		yyy = yyy+20;
+	end
+
+	setlinestyle(0,0,THICK_WIDTH);
+end
 
 local function check()
 --[=[
@@ -376,53 +461,88 @@ local function check()
 --]=]
 end
 
-local function loop()
+local function disp_score()
+	gotoxy(3,9);
+	printf("%d ",player2.score);
+	gotoxy(72,9);
+	printf("%d ",player1.score);
+end
+
+local function newtarget()
+	lx1 =0;
+	ly2 = 0;
+	if clr == 6 then
+		clr = 1;
+	else
+		clr = clr + 1;
+	end
 	
+	while(lx1 < 73 or ly1 < 93) do
+		lx1 = random(530);
+		ly1 = random(400);
+	end
+
+	lx2 = lx1+10;
+	ly2 = ly1;
+	setcolor(clr);
+	setlinestyle(0,0,THICK_WIDTH);
+	line(lx1,ly1,lx2,ly2);
+	target = NOTYET;
+end
+
+
+function loop()
+	--print("loop")
 	check();
---[[
-		if (target == HIT) then
+
+	if (target == HIT) then
 			disp_score();
 			setcolor(15);
 			line(lx1,ly1,lx2,ly2);
 			newtarget();
-		end
-
-		-- kbhit
+	end
 
 
+	player1:draw();
+	player1:advance();
+
+	player2:draw();
+	player2:advance();
+
+
+--[[
 		for (i=0;i<length1;i++)
 		{
 			x1[i]+=(2*dirx1[i]);
 			y1[i]+=(2*diry1[i]);
                         putpixel(x1[i],y1[i],12);
 		}
+		putpixel(x1[length1-1],y1[length1-1],0);
+		putpixel(x1[0],y1[0],1);
 		
+		for (i=length1-1;i>0;i--)
+		{
+			dirx1[i] = dirx1[i-1];
+			diry1[i] = diry1[i-1];
+		}
+
+
 		for (i=0;i<length2;i++)
 		{
 			x2[i]+=(2*dirx2[i]);
 			y2[i]+=(2*diry2[i]);
 			putpixel(x2[i],y2[i],1);
 		}
-
-		putpixel(x1[length1-1],y1[length1-1],0);
 		putpixel(x2[length2-1],y2[length2-1],0);
-
-		putpixel(x1[0],y1[0],1);
 		putpixel(x2[0],y2[0],12);
-		for (i=length1-1;i>0;i--)
-		{
-			dirx1[i] = dirx1[i-1];
-			diry1[i] = diry1[i-1];
-		}
+
+
 		for (i=length2-1;i>0;i--)
 		{
 			dirx2[i] = dirx2[i-1];
 			diry2[i] = diry2[i-1];
 		}
-		delay(15);
---		nosound();
---]]
-
+--]]	
 end
 
 local function draw_mid_box()
@@ -473,121 +593,29 @@ local function main()
 		player2.dirx[i] = 0;
 		player2.diry[i] = 0;
 	end
---[[
+
 	reset_game();
 
 	--closegraph();
---]]
-end
-
-
-local function newtarget()
---[[
-	lx1 =0;
-	ly2 = 0;
-	clr = (clr == 6)?1:clr+1;
-	while(lx1 < 73 || ly1 < 93)
-	{
-		lx1 = random(530);
-		ly1 = random(400);
-	}
-	lx2 = lx1+10;
-	ly2 = ly1;
-	setcolor(clr);
-	setlinestyle(0,0,THICK_WIDTH);
-	line(lx1,ly1,lx2,ly2);
-	target = NOTYET;
---]]
 end
 
 
 
-local function reset_game(player)
---[[
-	int cr,xxx = 15,yyy = 180;
-	--out_sound();
-	setlinestyle(0,0,NORM_WIDTH);
-	
-	if (player == RED) then
-	{
-		chance1 = chance1 - 1;
-		reset_screen();
-		if (chance1<0)
-			end_game(RED);
-	}
-	if (player == BLUE)
-	{
-		chance2--;
-		reset_screen();
-		if (chance2<0)
-			end_game(BLUE);
-	}
-	setlinestyle(0,0,NORM_WIDTH);
-	for (i=0;i<10;i++)
-	{
-		if (i<chance2) cr = 9;
-		else cr = 1;
-		setcolor(cr);
-		line(xxx,yyy,xxx+45,yyy);
-		yyy+=20;
-	}
-	yyy = 180;
-	xxx = 580;
-	for (i=0;i<10;i++)
-	{
-		if (i<chance1) cr = 12;
-		else cr = 1;
-		setcolor(cr);
-		line(xxx,yyy,xxx+45,yyy);
-		yyy+=20;
-	}
---]]
-	setlinestyle(0,0,THICK_WIDTH);
-end
 
-
-local function disp_score()
-	gotoxy(3,9);
-	printf("%d ",blue_score);
-	gotoxy(72,9);
-	printf("%d ",red_score);
-end
 
 
 
 
 local function reset_screen()
---[[
-	for(i=0;i<length1;i++)
-		putpixel(x1[i],y1[i],15);
-	for(i=0;i<length2;i++)
-		putpixel(x2[i],y2[i],15);
+	player1:reset(400, 240);
+	player2:reset(200, 240);
 
-	for (i=0;i<length1;i++)
-	{
-		if (play1 != GAMEOVER)
-		{	x1[i] = 400;
-			y1[i] = 240;
-			dirx1[i] = diry1[i] = 0;
-		}
-		length1 = 10;
-	}
 
-	for (i=0;i<length2;i++)
-	{
-		if (play2 != GAMEOVER)
-		{	x2[i] = 200;
-			y2[i] = 240;
-			dirx2[i] = diry2[i] = 0;
-		}
-		length2 = 10;
-	}
---]]
 	draw_mid_box();
 	setcolor(15);
         setlinestyle(0,0,THICK_WIDTH);
-	--line(lx1,ly1,lx2,ly2);
-	--newtarget();
+	line(lx1,ly1,lx2,ly2);
+	newtarget();
 end
 
 
@@ -607,9 +635,6 @@ local function end_game(player)
 		--exit(0);
 	end
 end
-
-
-
 
 
 main()
