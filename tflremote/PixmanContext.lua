@@ -179,7 +179,6 @@ end
 
 
 function PixmanContext.frameTriangle(self, x1, y1, x2, y2, x3, y3, value)
-	print("TRI: ", tri)
 	local tris = pman.pixman_triangle_t();
 
 	tris.p1 = pman.pixman_point_fixed_t(POINT(x1,y1));
@@ -190,7 +189,7 @@ function PixmanContext.frameTriangle(self, x1, y1, x2, y2, x3, y3, value)
     local src_img = pman.pixman_image_create_solid_fill (color);
 
 
-    pman.pixman_composite_triangles (pman.PIXMAN_OP_ATOP_REVERSE,
+    pman.pixman_composite_triangles (pman.PIXMAN_OP_SRC,
 				src_img,
 				self.Handle,
 				pman.PIXMAN_a8,
