@@ -34,6 +34,7 @@ local cursorX = 0;
 local cursorY = 0;
 local colorIndex = 0;
 local colorRGB = colors.white;
+local fgColor = colors.white;
 local bgColor = colors.black;
 
 function RGBFromColorIndex(cindex)
@@ -42,6 +43,10 @@ end
 
 function initgraph(graphdriver, graphmode, pathtodriver)
 	graphPort = graphdriver;
+end
+
+function cleardevice()
+	graphPort:clearAll();
 end
 
 function closegraph()
@@ -54,13 +59,21 @@ function getmaxcolor()
 	return 15
 end
 
+function getmaxx()
+	return graphPort.width-1;
+end
+
+function getmaxy()
+	return graphPort.height-1;
+end
+
 function gotoxy(x, y)
 	cursorX = x;
 	cursorY = y;
 end
 
 function line(x1, y1, x2, y2)
-	graphPort:line(x1, y1, x2, y2, colorRGB)
+	graphPort:line(x1, y1, x2, y2, fgColor)
 
 	return true;
 end
@@ -82,8 +95,11 @@ function putpixel(x, y, cindex)
 	return true;
 end
 
-function rectangle(x, y, width, height)
-	graphPort:fillRect(x, y, width, height, colorRGB);
+function rectangle(left, top, right, bottom)
+	local width = right - left+1;
+	local height = bottom - top+1;
+
+	graphPort:frameRect(left, top, width, height, fgColor);
 end
 
 function setbkcolor(cindex)
@@ -101,7 +117,7 @@ function setcolor(cindex)
 	end
 
 	colorIndex = cindex;
-	colorRGB = RGBFromColorIndex(cindex);
+	fgColor = RGBFromColorIndex(cindex);
 
 	return true;
 end
@@ -111,5 +127,9 @@ function setfillstyle(astyle, size)
 end
 
 function setlinestyle(a, b, astyle)
+	return false;
+end
+
+function settextstyle(...)
 	return false;
 end

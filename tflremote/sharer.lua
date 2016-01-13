@@ -5,8 +5,8 @@ local turbo = require("turbo")
 
 --local colors = require("colors")
 local bmp = require("tflremote.bmpcodec")
---local DrawingContext = require("tflremote.DrawingContext")
-local DrawingContext = require("tflremote.PixmanContext")
+local DrawingContext = require("tflremote.DrawingContext")
+--local DrawingContext = require("tflremote.PixmanContext")
 local MemoryStream = require("tflremote.memorystream")
 
 --[[
@@ -142,6 +142,7 @@ local function loadStartupContent(self)
     startupContent = string.gsub(content, "%<%?(%a+)%?%>", subs)
     
     --print(startupContent)
+    return startupContent
 end
 
 function StartupHandler:get(...)

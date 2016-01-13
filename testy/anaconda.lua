@@ -14,6 +14,10 @@ local width = 640;
 local height = 480;
 
 
+local DIRUP = 1;
+local DIRDOWN = 2;
+local DIRLEFT = 3;
+local DIRRIGHT = 4;
 
 local UP =18432
 local DOWN =20480
@@ -84,6 +88,41 @@ function Player.lengthChange(self)
 	end
 end
 
+function Player.move(self, direction)
+	if (self.state == GAMEOVER) then
+		return 
+	end
+
+	if direction == DIRUP then
+		if (self.diry[0] == 1) then
+			return
+		end
+	
+		self.diry[0] = -1;
+		self.dirx[0] = 0;
+	elseif direction == DIRDOWN then
+		if (self.diry[0] == -1) then
+			return
+		end
+
+		self.diry[0] = 1;
+		self.dirx[0] = 0;
+	elseif direction == DIRLEFT then
+
+		if (dirx1[0] == 1) then
+			return 
+		end
+		self.dirx[0] = -1;
+		self.diry[0] = 0;
+	elseif direction == DIRRIGHT then
+		if (self.dirx[0] == -1) then
+			return 
+		end
+		self.dirx[0] = 1;
+		self.diry[0] = 0;
+	end
+end
+
 --[[
 int x1[175];
 int y1[175];
@@ -117,101 +156,35 @@ local player2 = Player:new(2, colors.blue);
 
 local keyfuncs = {}
 function keyfuncs.uparrow()
---[[
-	if (play1 == GAMEOVER)
-		break;
-	if (diry1[0] == 1)
-		break;
-	
-	diry1[0] = -1;
-	dirx1[0] = 0;
---]]
+	player1:move(DIRUP);
 end
 
 function keyfuncs.downarrow()
---[[
-	if (player1.score == GAMEOVER) then
-						break;
-	end
-
-					if (diry1[0] == -1)
-						break;
-					diry1[0] = 1;
-					dirx1[0] = 0;
-					break;
---]]
+	player1:move(DIRDOWN);
 end
 
 function keyfuncs.rightarrow()
---[[
-					if (play1 == GAMEOVER)
-						break;
-					if (dirx1[0] == -1)
-						break;
-					dirx1[0] = 1;
-					diry1[0] = 0;
-					break;
---]]
+	player1:move(DIRRIGHT)
 end
 
 function keyfuncs.leftarrow()
---[[
-					if (play1 == GAMEOVER)
-						break;
-					if (dirx1[0] == 1)
-						break;
-					dirx1[0] = -1;
-					diry1[0] = 0;
-					break;
---]]
+	player1:move(DIRLEFT)
 end
 
 function keyfuncs.w()
---[[
-					if (play2 == GAMEOVER)
-						break;
-					if (diry2[0] == 1)
-						break;
-					diry2[0] = -1;
-					dirx2[0] = 0;
-					break;
---]]
+	player2:move(DIRUP);
 end
 
 function keyfuncs.s()
---[[
-					if (play2 == GAMEOVER)
-						break;
-					if (diry2[0] == -1)
-						break;
-					diry2[0] = 1;
-					dirx2[0] = 0;
-					break;
---]]
+	player2:move(DIRDOWN)
 end
 
 function keyfuncs.d()
---[[
-					if (play2 == GAMEOVER)
-						break;
-					if (dirx2[0] == -1)
-						break;
-					dirx2[0] = 1;
-					diry2[0] = 0;
-					break;
---]]
+	player2:move(DIRRIGHT)
 end
 
 function keyfuncs.a()
---[[
-					if (play2 == GAMEOVER)
-						break;
-					if (dirx2[0] == 1)
-						break;
-					dirx2[0] = -1;
-					diry2[0] = 0;
-					break;
---]]
+	player2:move(DIRLEFT)
 end
 
 function keyfuncs.enter()
@@ -229,123 +202,6 @@ function keyDown(activity)
 	end
 end
 
-
-local function loop()
---[[
-	while(true) do
-	
-		check();
-		
-		if (target == HIT) then
-			disp_score();
-			setcolor(15);
-			line(lx1,ly1,lx2,ly2);
-			newtarget();
-		end
-
-		-- kbhit
-
-
-		for (i=0;i<length1;i++)
-		{
-			x1[i]+=(2*dirx1[i]);
-			y1[i]+=(2*diry1[i]);
-                        putpixel(x1[i],y1[i],12);
-		}
-		
-		for (i=0;i<length2;i++)
-		{
-			x2[i]+=(2*dirx2[i]);
-			y2[i]+=(2*diry2[i]);
-			putpixel(x2[i],y2[i],1);
-		}
-
-		putpixel(x1[length1-1],y1[length1-1],0);
-		putpixel(x2[length2-1],y2[length2-1],0);
-
-		putpixel(x1[0],y1[0],1);
-		putpixel(x2[0],y2[0],12);
-		for (i=length1-1;i>0;i--)
-		{
-			dirx1[i] = dirx1[i-1];
-			diry1[i] = diry1[i-1];
-		}
-		for (i=length2-1;i>0;i--)
-		{
-			dirx2[i] = dirx2[i-1];
-			diry2[i] = diry2[i-1];
-		}
-		delay(15);
-		nosound();
-	end
---]]
-end
-
-local function main()
-	local graphPort = size(width, height)
-
-	--int gd = DETECT,gm,key;
-	--char r;
-	initgraph(graphPort,nil,"c:\\tc");
-
-
-	setcolor(1);
-	
-	rectangle(70,90,560,430);
-	setbkcolor(15);
-	rectangle(5,110,70,150);
-	settextstyle(5,0,0);
-		outtextxy(19,115,"Score");
-	
-	rectangle(560,110,625,150);
-	
-	setcolor(12);
-		outtextxy(570,115,"Score");
-	
-	setfillstyle(SOLID_FILL,1);
-	floodfill(10,10,1);
-	setcolor(12);
-	settextstyle(1,0,4);
-		outtextxy(180,30,"A n a c o n d A");
-	draw_mid_box();
-	for i=0, 9 do
-	
-		player1.x[i] = 400;
-		player1.y[i] = 240;
-		player1.dirx[i] = 0;
-		player1.diry[i] = 0;
-
-
-		player2.x[i] = 200;
-		player2.y[i] = 240;
-		player2.dirx[i] = 0;
-		player2.diry[i] = 0;
-	end
-
-	reset_game();
-
-	--closegraph();
-end
-
-
-local function newtarget()
---[[
-	lx1 =0;
-	ly2 = 0;
-	clr = (clr == 6)?1:clr+1;
-	while(lx1 < 73 || ly1 < 93)
-	{
-		lx1 = random(530);
-		ly1 = random(400);
-	}
-	lx2 = lx1+10;
-	ly2 = ly1;
-	setcolor(clr);
-	setlinestyle(0,0,THICK_WIDTH);
-	line(lx1,ly1,lx2,ly2);
-	target = NOTYET;
---]]
-end
 
 local function check()
 --[=[
@@ -520,6 +376,132 @@ local function check()
 --]=]
 end
 
+local function loop()
+	
+	check();
+--[[
+		if (target == HIT) then
+			disp_score();
+			setcolor(15);
+			line(lx1,ly1,lx2,ly2);
+			newtarget();
+		end
+
+		-- kbhit
+
+
+		for (i=0;i<length1;i++)
+		{
+			x1[i]+=(2*dirx1[i]);
+			y1[i]+=(2*diry1[i]);
+                        putpixel(x1[i],y1[i],12);
+		}
+		
+		for (i=0;i<length2;i++)
+		{
+			x2[i]+=(2*dirx2[i]);
+			y2[i]+=(2*diry2[i]);
+			putpixel(x2[i],y2[i],1);
+		}
+
+		putpixel(x1[length1-1],y1[length1-1],0);
+		putpixel(x2[length2-1],y2[length2-1],0);
+
+		putpixel(x1[0],y1[0],1);
+		putpixel(x2[0],y2[0],12);
+		for (i=length1-1;i>0;i--)
+		{
+			dirx1[i] = dirx1[i-1];
+			diry1[i] = diry1[i-1];
+		}
+		for (i=length2-1;i>0;i--)
+		{
+			dirx2[i] = dirx2[i-1];
+			diry2[i] = diry2[i-1];
+		}
+		delay(15);
+--		nosound();
+--]]
+
+end
+
+local function draw_mid_box()
+	setcolor(1);
+	line(270,230,330,230);
+	line(270,300,330,300);
+	line(260,240,260,290);
+	line(340,240,340,290);
+end
+
+local function main()
+	local graphPort = size(width, height)
+
+	initgraph(graphPort,nil,"c:\\tc");
+
+	setcolor(1);
+	
+	rectangle(70,90,560,430);
+
+	setbkcolor(15);
+	rectangle(5,110,70,150);
+	settextstyle(5,0,0);
+		outtextxy(19,115,"Score");
+	
+	rectangle(560,110,625,150);
+	
+	setcolor(12);
+		outtextxy(570,115,"Score");
+	
+	setfillstyle(SOLID_FILL,1);
+	floodfill(10,10,1);
+	setcolor(12);
+	settextstyle(1,0,4);
+		outtextxy(180,30,"A n a c o n d A");
+	draw_mid_box();
+
+
+	for i=0, 9 do
+	
+		player1.x[i] = 400;
+		player1.y[i] = 240;
+		player1.dirx[i] = 0;
+		player1.diry[i] = 0;
+
+
+		player2.x[i] = 200;
+		player2.y[i] = 240;
+		player2.dirx[i] = 0;
+		player2.diry[i] = 0;
+	end
+--[[
+	reset_game();
+
+	--closegraph();
+--]]
+end
+
+
+local function newtarget()
+--[[
+	lx1 =0;
+	ly2 = 0;
+	clr = (clr == 6)?1:clr+1;
+	while(lx1 < 73 || ly1 < 93)
+	{
+		lx1 = random(530);
+		ly1 = random(400);
+	}
+	lx2 = lx1+10;
+	ly2 = ly1;
+	setcolor(clr);
+	setlinestyle(0,0,THICK_WIDTH);
+	line(lx1,ly1,lx2,ly2);
+	target = NOTYET;
+--]]
+end
+
+
+
 local function reset_game(player)
 --[[
 	int cr,xxx = 15,yyy = 180;
@@ -565,19 +547,13 @@ end
 
 
 local function disp_score()
-		gotoxy(3,9);
-		printf("%d ",blue_score);
-		gotoxy(72,9);
-		printf("%d ",red_score);
+	gotoxy(3,9);
+	printf("%d ",blue_score);
+	gotoxy(72,9);
+	printf("%d ",red_score);
 end
 
-local function draw_mid_box()
-	setcolor(1);
-	line(270,230,330,230);
-	line(270,300,330,300);
-	line(260,240,260,290);
-	line(340,240,340,290);
-end
+
 
 
 local function reset_screen()
