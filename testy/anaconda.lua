@@ -600,12 +600,6 @@ local function main()
 end
 
 
-
-
-
-
-
-
 local function reset_screen()
 	player1:reset(400, 240);
 	player2:reset(200, 240);
