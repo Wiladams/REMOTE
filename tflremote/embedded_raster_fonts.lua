@@ -308,9 +308,9 @@ local gse4x6_tbl = {
 
 
 
---[=[
-ffi.cdef[[
-	const uint8_t gse4x8[] =
+
+
+gse4x8_tbl =
 	{
 		8, 0, 32, 128 - 32,
 
@@ -616,7 +616,7 @@ ffi.cdef[[
 		0
 	};
 
-	const uint8_t gse5x7[] =
+local gse5x7_tbl =
 	{
 		7, 0, 32, 128 - 32,
 
@@ -922,7 +922,7 @@ ffi.cdef[[
 		0
 	};
 
-	const uint8_t gse5x9[] =
+local gse5x9_tbl =
 	{
 		9, 0, 32, 128 - 32,
 
@@ -1228,7 +1228,7 @@ ffi.cdef[[
 		0
 	};
 
-	const uint8_t gse6x12[] =
+local gse6x12_tbl =
 	{
 		12, 0, 32, 128 - 32,
 
@@ -1534,7 +1534,7 @@ ffi.cdef[[
 		0
 	};
 
-	const uint8_t gse6x9[] =
+local gse6x9_tbl =
 	{
 		9, 0, 32, 128 - 32,
 
@@ -1840,7 +1840,7 @@ ffi.cdef[[
 		0
 	};
 
-	const uint8_t gse7x11[] =
+local gse7x11_tbl =
 	{
 		11, 0, 32, 128 - 32,
 
@@ -2146,7 +2146,7 @@ ffi.cdef[[
 		0
 	};
 
-	const uint8_t gse7x11_bold[] =
+local gse7x11_bold_tbl =
 	{
 		11, 0, 32, 128 - 32,
 
@@ -2452,7 +2452,7 @@ ffi.cdef[[
 		0
 	};
 
-	const uint8_t gse7x15[] =
+local gse7x15_tbl =
 	{
 		15, 0, 32, 128 - 32,
 
@@ -2758,7 +2758,7 @@ ffi.cdef[[
 		0
 	};
 
-	const uint8_t gse7x15_bold[] =
+local gse7x15_bold_tbl =
 	{
 		15, 0, 32, 128 - 32,
 
@@ -3064,7 +3064,7 @@ ffi.cdef[[
 		0
 	};
 
-	const uint8_t gse8x16[] =
+local gse8x16_tbl =
 	{
 		16, 0, 32, 128 - 32,
 
@@ -3370,7 +3370,7 @@ ffi.cdef[[
 		0
 	};
 
-	const uint8_t gse8x16_bold[] =
+local gse8x16_bold_tbl =
 	{
 		16, 0, 32, 128 - 32,
 
@@ -3676,7 +3676,7 @@ ffi.cdef[[
 		0
 	};
 
-	const uint8_t mcs11_prop[] =
+local mcs11_prop_tbl =
 	{
 		11, 2, 32, 128 - 32,
 		0x00, 0x00, 0x0C, 0x00, 0x18, 0x00, 0x24, 0x00, 0x30, 0x00, 0x3C, 0x00, 0x48, 0x00, 0x54, 0x00, 0x60, 0x00,
@@ -3982,7 +3982,7 @@ ffi.cdef[[
 		0
 	};
 
-	const uint8_t mcs11_prop_condensed[] =
+local mcs11_prop_condensed_tbl =
 	{
 		11, 2, 32, 128 - 32,
 		0x00, 0x00, 0x0C, 0x00, 0x18, 0x00, 0x24, 0x00, 0x30, 0x00, 0x3C, 0x00, 0x48, 0x00, 0x54, 0x00, 0x60, 0x00,
@@ -4288,7 +4288,7 @@ ffi.cdef[[
 		0
 	};
 
-	const uint8_t mcs12_prop[] =
+local mcs12_prop_tbl =
 	{
 		12, 3, 32, 128 - 32,
 		0x00, 0x00, 0x0D, 0x00, 0x1A, 0x00, 0x27, 0x00, 0x34, 0x00, 0x41, 0x00, 0x4E, 0x00, 0x5B, 0x00, 0x68, 0x00,
@@ -4594,7 +4594,7 @@ ffi.cdef[[
 		0
 	};
 
-	const uint8_t mcs13_prop[] =
+local mcs13_prop_tbl =
 	{
 		13, 4, 32, 128 - 32,
 		0x00, 0x00, 0x0E, 0x00, 0x1C, 0x00, 0x2A, 0x00, 0x38, 0x00, 0x46, 0x00, 0x54, 0x00, 0x62, 0x00, 0x70, 0x00,
@@ -4900,7 +4900,7 @@ ffi.cdef[[
 		0
 	};
 
-	const uint8_t mcs5x10_mono[] =
+local mcs5x10_mono_tbl =
 	{
 		10, 2, 32, 128 - 32,
 		0x00, 0x00, 0x0B, 0x00, 0x16, 0x00, 0x21, 0x00, 0x2C, 0x00, 0x37, 0x00, 0x42, 0x00, 0x4D, 0x00, 0x58, 0x00,
@@ -5206,7 +5206,7 @@ ffi.cdef[[
 		0
 	};
 
-	const uint8_t mcs5x11_mono[] =
+local mcs5x11_mono_tbl =
 	{
 		11, 3, 32, 128 - 32,
 		0x00, 0x00, 0x0C, 0x00, 0x18, 0x00, 0x24, 0x00, 0x30, 0x00, 0x3C, 0x00, 0x48, 0x00, 0x54, 0x00, 0x60, 0x00,
@@ -5512,7 +5512,7 @@ ffi.cdef[[
 		0
 	};
 
-	const uint8_t mcs6x10_mono[] =
+local mcs6x10_mono_tbl =
 	{
 		10, 3, 32, 128 - 32,
 		0x00, 0x00, 0x0B, 0x00, 0x16, 0x00, 0x21, 0x00, 0x2C, 0x00, 0x37, 0x00, 0x42, 0x00, 0x4D, 0x00, 0x58, 0x00,
@@ -5818,7 +5818,7 @@ ffi.cdef[[
 		0
 	};
 
-	const uint8_t mcs6x11_mono[] =
+local mcs6x11_mono_tbl =
 	{
 		11, 3, 32, 128 - 32,
 		0x00, 0x00, 0x0C, 0x00, 0x18, 0x00, 0x24, 0x00, 0x30, 0x00, 0x3C, 0x00, 0x48, 0x00, 0x54, 0x00, 0x60, 0x00,
@@ -6124,7 +6124,7 @@ ffi.cdef[[
 		0
 	};
 
-	const uint8_t mcs7x12_mono_high[] =
+local mcs7x12_mono_high_tbl =
 	{
 		12, 3, 32, 128 - 32,
 		0x00, 0x00, 0x0D, 0x00, 0x1A, 0x00, 0x27, 0x00, 0x34, 0x00, 0x41, 0x00, 0x4E, 0x00, 0x5B, 0x00, 0x68, 0x00,
@@ -6430,7 +6430,7 @@ ffi.cdef[[
 		0
 	};
 
-	const uint8_t mcs7x12_mono_low[] =
+local mcs7x12_mono_low_tbl =
 	{
 		12, 4, 32, 128 - 32,
 		0x00, 0x00, 0x0D, 0x00, 0x1A, 0x00, 0x27, 0x00, 0x34, 0x00, 0x41, 0x00, 0x4E, 0x00, 0x5B, 0x00, 0x68, 0x00,
@@ -6736,7 +6736,7 @@ ffi.cdef[[
 		0
 	};
 
-	const uint8_t verdana12[] =
+local verdana12_tbl =
 	{
 		12, 3, 32, 128 - 32,
 		0x00, 0x00, 0x0D, 0x00, 0x1A, 0x00, 0x27, 0x00, 0x34, 0x00, 0x41, 0x00, 0x5A, 0x00, 0x67, 0x00, 0x74, 0x00,
@@ -7042,7 +7042,7 @@ ffi.cdef[[
 		0
 	};
 
-	const uint8_t verdana12_bold[] =
+local verdana12_bold_tbl =
 	{
 		12, 3, 32, 128 - 32,
 		0x00, 0x00, 0x0D, 0x00, 0x1A, 0x00, 0x27, 0x00, 0x34, 0x00, 0x41, 0x00, 0x5A, 0x00, 0x67, 0x00, 0x74, 0x00,
@@ -7348,7 +7348,7 @@ ffi.cdef[[
 		0
 	};
 
-	const uint8_t verdana13[] =
+local verdana13_tbl =
 	{
 		13, 3, 32, 128 - 32,
 		0x00, 0x00, 0x0E, 0x00, 0x1C, 0x00, 0x2A, 0x00, 0x45, 0x00, 0x53, 0x00, 0x6E, 0x00, 0x7C, 0x00, 0x8A, 0x00,
@@ -7654,7 +7654,7 @@ ffi.cdef[[
 		0
 	};
 
-	const uint8_t verdana13_bold[] =
+local verdana13_bold_tbl =
 	{
 		13, 3, 32, 128 - 32,
 		0x00, 0x00, 0x0E, 0x00, 0x1C, 0x00, 0x2A, 0x00, 0x45, 0x00, 0x53, 0x00, 0x6E, 0x00, 0x89, 0x00, 0x97, 0x00,
@@ -7959,9 +7959,9 @@ ffi.cdef[[
 
 		0
 	};
---]=]
 
-verdana14_tbl =
+
+local verdana14_tbl =
 	{
 		14, 3, 32, 128 - 32,
 		0x00, 0x00, 0x0F, 0x00, 0x1E, 0x00, 0x2D, 0x00, 0x4A, 0x00, 0x59, 0x00, 0x76, 0x00, 0x93, 0x00, 0xA2, 0x00,
@@ -8267,8 +8267,8 @@ verdana14_tbl =
 		0
 	};
 
---[=[
-	const uint8_t verdana14_bold[] =
+
+local verdana14_bold_tbl =
 	{
 		14, 3, 32, 128 - 32,
 		0x00, 0x00, 0x0F, 0x00, 0x1E, 0x00, 0x2D, 0x00, 0x4A, 0x00, 0x67, 0x00, 0x84, 0x00, 0xA1, 0x00, 0xB0, 0x00,
@@ -8574,7 +8574,7 @@ verdana14_tbl =
 		0
 	};
 
-	const uint8_t verdana16[] =
+local verdana16_tbl =
 	{
 		16, 4, 32, 128 - 32,
 		0x00, 0x00, 0x11, 0x00, 0x22, 0x00, 0x33, 0x00, 0x54, 0x00, 0x65, 0x00, 0x86, 0x00, 0xA7, 0x00, 0xB8, 0x00,
@@ -8880,7 +8880,7 @@ verdana14_tbl =
 		0
 	};
 
-	const uint8_t verdana16_bold[] =
+local verdana16_bold_tbl =
 	{
 		16, 4, 32, 128 - 32,
 		0x00, 0x00, 0x11, 0x00, 0x22, 0x00, 0x33, 0x00, 0x54, 0x00, 0x75, 0x00, 0xA6, 0x00, 0xC7, 0x00, 0xD8, 0x00,
@@ -9186,7 +9186,7 @@ verdana14_tbl =
 		0
 	};
 
-	const uint8_t verdana17[] =
+local verdana17_tbl =
 	{
 		17, 4, 32, 128 - 32,
 		0x00, 0x00, 0x12, 0x00, 0x24, 0x00, 0x36, 0x00, 0x59, 0x00, 0x7C, 0x00, 0x9F, 0x00, 0xC2, 0x00, 0xD4, 0x00,
@@ -9492,7 +9492,7 @@ verdana14_tbl =
 		0
 	};
 
-	const uint8_t verdana17_bold[] =
+local verdana17_bold_tbl =
 	{
 		17, 4, 32, 128 - 32,
 		0x00, 0x00, 0x12, 0x00, 0x24, 0x00, 0x36, 0x00, 0x59, 0x00, 0x7C, 0x00, 0xB0, 0x00, 0xD3, 0x00, 0xE5, 0x00,
@@ -9798,7 +9798,7 @@ verdana14_tbl =
 		0
 	};
 
-	const uint8_t verdana18[] =
+local verdana18_tbl =
 	{
 		18, 4, 32, 128 - 32,
 		0x00, 0x00, 0x13, 0x00, 0x26, 0x00, 0x39, 0x00, 0x5E, 0x00, 0x83, 0x00, 0xA8, 0x00, 0xCD, 0x00, 0xE0, 0x00,
@@ -10103,7 +10103,7 @@ verdana14_tbl =
 
 		0
 	};
---]=]
+
 
 local verdana18_bold_tbl =
 	{
@@ -10412,12 +10412,43 @@ local verdana18_bold_tbl =
 }
 
 
-local EmbeddedFont = require("EmbeddedFont")
+local EmbeddedFont = require("tflremote.EmbeddedFont")
 
 return {
---	gse4x6_tbl = gse4x6_tbl;
---	verdana14_tbl = verdana14_tbl;
---	verdana18_bold_tbl = verdana18_bold_tbl;
+	gse4x6= EmbeddedFont:new(ffi.new("uint8_t[?]", #gse4x6_tbl, gse4x6_tbl));
+	gse4x8= EmbeddedFont:new(ffi.new("uint8_t[?]", #gse4x8_tbl, gse4x8_tbl));
+	gse5x7= EmbeddedFont:new(ffi.new("uint8_t[?]", #gse5x7_tbl, gse5x7_tbl));
+	gse5x9= EmbeddedFont:new(ffi.new("uint8_t[?]", #gse5x9_tbl, gse5x9_tbl));
+	gse6x12= EmbeddedFont:new(ffi.new("uint8_t[?]", #gse6x12_tbl, gse6x12_tbl));
+	gse6x9= EmbeddedFont:new(ffi.new("uint8_t[?]", #gse6x9_tbl, gse6x9_tbl));
+	gse7x11= EmbeddedFont:new(ffi.new("uint8_t[?]", #gse7x11_tbl, gse7x11_tbl));
+	gse7x11_bold= EmbeddedFont:new(ffi.new("uint8_t[?]", #gse7x11_bold_tbl, gse7x11_bold_tbl));
+	gse7x15= EmbeddedFont:new(ffi.new("uint8_t[?]", #gse7x15_tbl, gse7x15_tbl));
+	gse7x15_bold= EmbeddedFont:new(ffi.new("uint8_t[?]", #gse7x15_bold_tbl, gse7x15_bold_tbl));
+	gse8x16= EmbeddedFont:new(ffi.new("uint8_t[?]", #gse8x16_tbl, gse8x16_tbl));
+	gse8x16_bold= EmbeddedFont:new(ffi.new("uint8_t[?]", #gse8x16_bold_tbl, gse8x16_bold_tbl));
+	mcs11_prop= EmbeddedFont:new(ffi.new("uint8_t[?]", #mcs11_prop_tbl, mcs11_prop_tbl));
+	mcs11_prop_condensed= EmbeddedFont:new(ffi.new("uint8_t[?]", #mcs11_prop_condensed_tbl, mcs11_prop_condensed_tbl));
+	mcs12_prop= EmbeddedFont:new(ffi.new("uint8_t[?]", #mcs12_prop_tbl, mcs12_prop_tbl));
+	mcs13_prop= EmbeddedFont:new(ffi.new("uint8_t[?]", #mcs13_prop_tbl, mcs13_prop_tbl));
+	mcs5x10_mono= EmbeddedFont:new(ffi.new("uint8_t[?]", #mcs5x10_mono_tbl, mcs5x10_mono_tbl));
+	mcs5x11_mono= EmbeddedFont:new(ffi.new("uint8_t[?]", #mcs5x11_mono_tbl, mcs5x11_mono_tbl));
+	mcs6x10_mono= EmbeddedFont:new(ffi.new("uint8_t[?]", #mcs6x10_mono_tbl, mcs6x10_mono_tbl));
+	mcs6x11_mono= EmbeddedFont:new(ffi.new("uint8_t[?]", #mcs6x11_mono_tbl, mcs6x11_mono_tbl));
+	mcs7x12_mono_high= EmbeddedFont:new(ffi.new("uint8_t[?]", #mcs7x12_mono_high_tbl, mcs7x12_mono_high_tbl));
+	mcs7x12_mono_low= EmbeddedFont:new(ffi.new("uint8_t[?]", #mcs7x12_mono_low_tbl, mcs7x12_mono_low_tbl));
+	verdana12= EmbeddedFont:new(ffi.new("uint8_t[?]", #verdana12_tbl, verdana12_tbl));
+	verdana12_bold= EmbeddedFont:new(ffi.new("uint8_t[?]", #verdana12_bold_tbl, verdana12_bold_tbl));
+	verdana13= EmbeddedFont:new(ffi.new("uint8_t[?]", #verdana13_tbl, verdana13_tbl));
+	verdana13_bold= EmbeddedFont:new(ffi.new("uint8_t[?]", #verdana13_bold_tbl, verdana13_bold_tbl));
+	verdana14= EmbeddedFont:new(ffi.new("uint8_t[?]", #verdana14_tbl, verdana14_tbl));
+	verdana14_bold= EmbeddedFont:new(ffi.new("uint8_t[?]", #verdana14_bold_tbl, verdana14_bold_tbl));
+	verdana16= EmbeddedFont:new(ffi.new("uint8_t[?]", #verdana16_tbl, verdana16_tbl));
+	verdana16_bold= EmbeddedFont:new(ffi.new("uint8_t[?]", #verdana16_bold_tbl, verdana16_bold_tbl));
+	verdana17= EmbeddedFont:new(ffi.new("uint8_t[?]", #verdana17_tbl, verdana17_tbl));
+	verdana17_bold= EmbeddedFont:new(ffi.new("uint8_t[?]", #verdana17_bold_tbl, verdana17_bold_tbl));
+	verdana18= EmbeddedFont:new(ffi.new("uint8_t[?]", #verdana18_tbl, verdana18_tbl));
+	verdana18_bold= EmbeddedFont:new(ffi.new("uint8_t[?]", #verdana18_bold_tbl, verdana18_bold_tbl));
 
 	gse4x6 = EmbeddedFont:new(ffi.new("uint8_t[?]", #gse4x6_tbl+1, gse4x6_tbl));
 	verdana14 = EmbeddedFont:new(ffi.new("uint8_t[?]", #verdana14_tbl+1, verdana14_tbl));

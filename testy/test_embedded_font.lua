@@ -5,8 +5,8 @@ local ffi = require("ffi")
 local DrawingContext = require("tflremote.DrawingContext")
 local FileStream = require("filestream")
 local bmp = require("tflremote.bmpcodec")
+local fonts = require("tflremote.embedded_raster_fonts");
 local colors = require("colors")
-local fonts = require("embedded_raster_fonts");
 
 
 
@@ -31,6 +31,7 @@ local text = "Hello, World!";
 
 local messages = {
 	{"gse4x6 - Hello, World", gse4x6},
+	{"mcs7x12_mono_high - The quick brown fox jumped over the lazy dogs back", fonts.mcs7x12_mono_high},
 	{"verdana14 - The quick brown fox jumped over the lazy dogs back", verdana14},
 	{"verdana18_bold - The quick brown fox jumped over the lazy dogs back", verdana18_bold},
 }

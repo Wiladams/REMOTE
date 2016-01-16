@@ -4,6 +4,7 @@
 -- 
 
 local colors = require("colors")
+local fonts = require("tflremote.embedded_raster_fonts")
 
 local graphPort = nil;
 
@@ -36,6 +37,8 @@ local colorIndex = 0;
 local colorRGB = colors.white;
 local fgColor = colors.white;
 local bgColor = colors.black;
+local currentFont = fonts.verdana12;
+
 
 function RGBFromColorIndex(cindex)
 	return colorValues[cindex+1].value
@@ -68,8 +71,8 @@ function getmaxy()
 end
 
 function gotoxy(x, y)
-	cursorX = x;
-	cursorY = y;
+	cursorX = x*8;
+	cursorY = y*15;
 end
 
 function line(x1, y1, x2, y2)
@@ -79,12 +82,16 @@ function line(x1, y1, x2, y2)
 end
 
 function outtextxy(x, y, text)
+--	print("Height: ", font.height)
+--	print("# Chars: ", font.num_chars)
+--	print("String Width: ", font:stringWidth(str));
+
+	currentFont:scan_str(graphPort, x, y, text, fgColor);
 end
 
 function printf(fmt, ...)
-	-- create a string
-	-- print it at the current 
-	-- cursor location
+	local str = string.format(fmt, ...)
+	outtextxy(cursorX, cursorY, str);
 end
 
 function putpixel(x, y, cindex)
