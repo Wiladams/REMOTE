@@ -1,30 +1,54 @@
 package.path = "../?.lua;"..package.path;
 
+local ffi = require("ffi")
+
 local DrawingContext = require("tflremote.DrawingContext")
 local FileStream = require("filestream")
 local bmp = require("tflremote.bmpcodec")
 local colors = require("colors")
 local fonts = require("embedded_raster_fonts");
-local EmbeddedFont = require("EmbeddedFont");
 
 
-local gse4x6_data = fonts.gse4x6;
+
+local gse4x6 = fonts.gse4x6;
 local verdana14 = fonts.verdana14;
-
-
---local font1 = EmbeddedFont:new(gse4x6_data)
-local font1 = EmbeddedFont:new(verdana14)
-
-print("Height: ", font1.height)
-print("# Chars: ", font1.num_chars)
-print("String Width: ", font1:stringWidth("Hello, World"));
+local verdana18_bold = fonts.verdana18_bold;
 
 -- Create a buffer
-local pb = DrawingContext:new(320,240);
+local pb = DrawingContext:new(640,480);
+pb:clearToWhite();
 
--- draw a string into it
-font1:scan_str(pb, 20, 20, "Hello, World", colors.white)
---font1:scan_str(pb, 20, 20, "Hello", colors.red)
+
+local function outtext(x, y, str, font, color)
+	print("Height: ", font.height)
+	print("# Chars: ", font.num_chars)
+	print("String Width: ", font:stringWidth(str));
+
+	font:scan_str(pb, x, y, str, color);
+end
+
+local text = "Hello, World!";
+
+local messages = {
+	{"gse4x6 - Hello, World", gse4x6},
+	{"verdana14 - The quick brown fox jumped over the lazy dogs back", verdana14},
+	{"verdana18_bold - The quick brown fox jumped over the lazy dogs back", verdana18_bold},
+}
+
+local basex = 10;
+local basey = 10;
+local vgap = 4;
+
+local cursorx = 10;
+local cursory = 10;
+
+for _, msg in ipairs(messages) do
+	outtext(cursorx, cursory, msg[1], msg[2], colors.black);
+	cursorx = 10;
+	cursory = cursory + msg[2].height + vgap;
+end
+
+
 
 -- write it out to a .bmp file
 local fs = FileStream.open("test_embedded_font.bmp")

@@ -44,6 +44,7 @@ local EmbeddedFont_mt = {
 
 function EmbeddedFont.init(self, data)
 	local obj = {
+		data = data;	-- cast of data isn't good enough to anchor it
 		bigendian = isBigEndian();
 		height = data[0];
 		baseline = data[1];
@@ -84,6 +85,7 @@ end
 
 -- Prepare a glyph to be written to a specific
 -- position
+--[[
 function EmbeddedFont.glyph_t_prepare(self, ginfo, r, x, y, flip)
 
 	r.x1 = int(x);
@@ -100,6 +102,7 @@ function EmbeddedFont.glyph_t_prepare(self, ginfo, r, x, y, flip)
 	r.dx = ginfo.width;
 	r.dy = 0;
 end
+--]]
 
 -- Fill in the meta information for the specified glyph
 function EmbeddedFont.glyph_t_init(self, ginfo, glyphidx)
@@ -139,25 +142,27 @@ end
 
 -- Create a single scanline of the glyph
 function EmbeddedFont.glyph_t_span(self, g, i, m_span)
-	i = self.height - i - 1;
+	--i = self.height - i - 1;
+	i = self.height - i;
+--print(".glyph_t_span (i): ", i)
 
 	local bits = g.data + i * g.byte_width;
 	local val = bits[0];
 	local nb = 0;
 
 	for j = 0, tonumber(g.width)-1 do
+		--m_span[j] = (band(val, 0x80) ? cover_full : cover_none);
 		if band(val, 0x80 )> 0 then
 			m_span[j]  = cover_full;
 		else
 			m_span[j] = cover_none;
 		end
 
-		--m_span[j] = (band(val, 0x80) ? cover_full : cover_none);
 		val = lshift(val,1);
 		nb = nb + 1;
 		if (nb >= 8) then
-			val = bits[0];
 			bits = bits + 1;
+			val = bits[0];
 			nb = 0;
 		end
 	end
@@ -178,8 +183,10 @@ function EmbeddedFont.scan_glyph(self, pb, glyph, x, y, color)
 		local spanwidth = glyph.width;
 		while (spanwidth > 0) do
 			if (m_span[spanwidth] == cover_full) then
+				-- really we want a 'cover pixel' so we can do anti-aliasing
+				-- but it's a bitmap font, so it won't matter
 				pb:setPixel(x + spanwidth, y + self.height - line, color);
-				--pb_rgba_cover_pixel(pb, x + spanwidth, y + font.height - line, color);
+				--pb:frameRect((x + spanwidth)*9, (y + self.height - line)*9, 8, 8, color)
 			end
 
 			spanwidth = spanwidth - 1;
