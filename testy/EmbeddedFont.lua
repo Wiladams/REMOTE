@@ -5,6 +5,9 @@ local bor, band = bit.bor, bit.band;
 
 local int = ffi.typeof("int")
 local uint16_t = ffi.typeof("uint16_t")
+local cover_type = ffi.typeof("uint32_t")
+local cover_none = 0;
+local cover_full = 1;
 
 
 ffi.cdef[[
@@ -134,33 +137,39 @@ function EmbeddedFont.stringWidth(self, str)
 end
 
 
---[[
 -- Create a single scanline of the glyph
 function EmbeddedFont.glyph_t_span(self, g, i, m_span)
-
 	i = self.height - i - 1;
 
 	local bits = g.data + i * g.byte_width;
 	local val = bits[0];
 	local nb = 0;
 
-	for j = 0, g.width-1 do
-		m_span[j] = (cover_type)(band(val, 0x80) ? cover_full : cover_none);
+	for j = 0, tonumber(g.width)-1 do
+		if band(val, 0x80 )> 0 then
+			m_span[j]  = cover_full;
+		else
+			m_span[j] = cover_none;
+		end
+
+		--m_span[j] = (band(val, 0x80) ? cover_full : cover_none);
 		val = lshift(val,1);
-		if (++nb >= 8) then
+		nb = nb + 1;
+		if (nb >= 8) then
 			val = bits[0];
 			bits = bits + 1;
 			nb = 0;
 		end
 	end
 
-	--return m_span;
+	return m_span;
 end
 
-function EmbeddedFont.scan_glyph(self, pb_rgba *pb, glyph_t *glyph, const int x, const int y, const uint32_t color)
 
-	cover_type m_span[32];
-	local line = font.height;
+function EmbeddedFont.scan_glyph(self, pb, glyph, x, y, color)
+
+	local m_span = ffi.new("uint8_t[32]");
+	local line = self.height;
 
 	while (line > 0) do
 		self:glyph_t_span(glyph, line, m_span);
@@ -169,7 +178,8 @@ function EmbeddedFont.scan_glyph(self, pb_rgba *pb, glyph_t *glyph, const int x,
 		local spanwidth = glyph.width;
 		while (spanwidth > 0) do
 			if (m_span[spanwidth] == cover_full) then
-				pb_rgba_cover_pixel(pb, x + spanwidth, y + font.height - line, color);
+				pb:setPixel(x + spanwidth, y + self.height - line, color);
+				--pb_rgba_cover_pixel(pb, x + spanwidth, y + font.height - line, color);
 			end
 
 			spanwidth = spanwidth - 1;
@@ -181,7 +191,7 @@ function EmbeddedFont.scan_glyph(self, pb_rgba *pb, glyph_t *glyph, const int x,
 
 	return glyph.width;
 end
---]]
+
 
 function EmbeddedFont.scan_str(self, pb, x, y, chars, color)
 
@@ -191,7 +201,7 @@ function EmbeddedFont.scan_str(self, pb, x, y, chars, color)
 	local dy = y;
 
 	for idx=1, #chars do
-		self:glyph_t_init(ginfo, chars.byte(idx,idx));
+		self:glyph_t_init(ginfo, chars:byte(idx,idx));
 		self:scan_glyph(pb, ginfo, dx, dy, color);
 		dx = dx + ginfo.width;
 		idx = idx + 1;

@@ -7959,8 +7959,9 @@ ffi.cdef[[
 
 		0
 	};
+--]=]
 
-	const uint8_t verdana14[] =
+verdana14_tbl =
 	{
 		14, 3, 32, 128 - 32,
 		0x00, 0x00, 0x0F, 0x00, 0x1E, 0x00, 0x2D, 0x00, 0x4A, 0x00, 0x59, 0x00, 0x76, 0x00, 0x93, 0x00, 0xA2, 0x00,
@@ -8266,6 +8267,7 @@ ffi.cdef[[
 		0
 	};
 
+--[=[
 	const uint8_t verdana14_bold[] =
 	{
 		14, 3, 32, 128 - 32,
@@ -10411,5 +10413,5 @@ ffi.cdef[[
 
 return {
 	gse4x6 = ffi.new("uint8_t[?]", #gse4x6_tbl, gse4x6_tbl);
-
+	verdana14 = ffi.new("uint8_t[?]", #verdana14_tbl, verdana14_tbl);
 }
