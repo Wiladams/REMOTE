@@ -162,7 +162,7 @@ end
 function DrawingContext.frameRect(self, x, y, width, height, value)
 	-- two horizontals
 	self:hline(x, y, width, value);
-	self:hline(x, y+height-1, height, value);
+	self:hline(x, y+height-1, width, value);
 
 	-- two verticals
 	self:vline(x, y, height, value);

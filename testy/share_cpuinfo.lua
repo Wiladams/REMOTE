@@ -16,7 +16,6 @@ local keycodes = require("tflremote.jskeycodes")
 --local procfs = require("lj2procfs.procfs")
 local stat = require("stat")
 
-local random = math.random
 
 local width = 640;
 local height = 100;
@@ -69,14 +68,16 @@ function loop()
 	loadnums[width-1] = CPU_Percentage;
 
 	-- draw vertical line for each value
-	graphPort:clearAll();
+	graphPort:clearToWhite();
 	for i=0,width-1 do
 		--print("loadnums: ", i, loadnums[i])
 		local yval = RANGEMAP(loadnums[i], 0, 1.0, height-1, 0)
 		--print("yval: ", yval)
 		--graphPort:setPixel(i, yval, colors.white)blue
-		graphPort:line(i, height-1, i, yval, colors.yellow)
+		graphPort:line(i, height-1, i, yval, colors.black)
 	end
+
+
 end
 
 loopInterval(1000/4)

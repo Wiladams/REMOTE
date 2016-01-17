@@ -126,7 +126,7 @@ function EmbeddedFont.glyphWidth(self, glyphidx)
 end
 
 -- Figure out the width of a string in a given font
-function EmbeddedFont.stringWidth(self, str)
+function EmbeddedFont.measureText(self, str)
 	--print(".stringWidth: ", str, #str)
 	local w = 0;
 
@@ -136,7 +136,12 @@ function EmbeddedFont.stringWidth(self, str)
 		w = w + self:glyphWidth(byte);
 	end
 
-	return w;
+	return {
+		width = tonumber(w);
+		height = self.height;
+		baseline = self.baseline;
+	}
+
 end
 
 

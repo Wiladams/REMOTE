@@ -1,13 +1,15 @@
 package.path = "../?.lua;"..package.path;
 
 local ffi = require("ffi")
+local random = math.random
+
 local NetInteractor = require("tflremote.sharer")
 
 
 local colors = require("colors")
 local keycodes = require("tflremote.jskeycodes")
 local bgi = require("bgi")
-local random = math.random
+local maths = require("maths")
 
 
 local width = 640;
@@ -19,17 +21,7 @@ local DIRDOWN = 2;
 local DIRLEFT = 3;
 local DIRRIGHT = 4;
 
---[[
-local UP =18432
-local DOWN =20480
-local RIGHT =19712
-local LEFT =19200
-local ENTER =7181
-local W =4471
-local S =8051
-local A =7777
-local D =8292
---]]
+
 
 local HIT =1
 local NOTYET =0
@@ -38,6 +30,83 @@ local BLUE =2
 local YES =1
 local NO =0
 local GAMEOVER =-1
+
+
+local Stage = {	left = 70, top = 90, right = 560, bottom = 430}
+function Stage.contains(self, x,y)
+	return not (x <= self.left or x >= self.right or y <= self.top or y >= self.bottom)
+end
+
+function Stage.draw(self)
+	setcolor(1);
+	rectangle(self.left, self.top, self.right, self.bottom);
+end
+
+local MidBox = {
+	lines = {
+		{x1 = 270, y1 = 230, x2 = 330, y2 = 230},
+		{x1 = 270, y1 = 300, x2 = 330, y2 = 300},
+		{x1 = 260, y1 = 240, x2 = 260, y2 = 290},
+		{x1 = 340, y1 = 240, x2 = 340, y2 = 290}
+	}
+}
+
+function MidBox.draw(self)
+	setcolor(1);
+	for _, aline in ipairs(self.lines) do
+		line(aline.x1, aline.y1, aline.x2, aline.y2)
+	end
+end
+
+function MidBox.hit(self, ptx, pty)
+	for _, aline in ipairs(self.lines) do
+		local distance = maths.pointLineDistance(
+			aline.x1, aline.y1, 
+			aline.x2, aline.y2, 
+			ptx, pty)
+		--print("MidBox.hit, distance: ", distance)
+
+		if distance == 0 then return true end
+	end
+
+	return false;
+end
+
+
+--[[
+	The Arena represents the entirety of the gamespace.
+	The Arena contains the stage, as well as the various players.
+	It will ultimately receive the commands from the outside world,
+	and move the players along.
+--]]
+local Arena = {}
+
+function Arena.draw(self)
+	setcolor(1);
+
+	Stage:draw();
+
+		setbkcolor(15);
+	rectangle(5,110,70,150);
+	settextstyle(5,0,0);
+		outtextxy(19,115,"Score");
+	
+	rectangle(560,110,625,150);
+	
+	setcolor(12);
+		outtextxy(570,115,"Score");
+	
+	setfillstyle(SOLID_FILL,1);
+	floodfill(10,10,1);
+	setcolor(12);
+	settextstyle(1,0,4);
+		outtextxy(180,30,"A n a c o n d A");
+	
+	MidBox:draw();
+end
+
+
+
 
 local Player = {}
 local Player_mt = {
@@ -69,13 +138,15 @@ function Player.new(self, id, color)
 end
 
 function Player.draw(self)
+	--print("Player.draw(): ", self.color)
+
 	for i=0, self.length-1 do
 		self.x[i] =self.x[i] + (2*self.dirx[i]);
 		self.y[i] =self.y[i] + (2*self.diry[i]);
-        putpixel(self.x[i],self.y[i],12);
+        putpixel(self.x[i],self.y[i],self.color);
 	end
 	putpixel(self.x[self.length-1],self.y[self.length-1],0);
-	putpixel(self.x[0],self.y[0],1);
+	putpixel(self.x[0],self.y[0],self.color);
 end
 
 function Player.advance(self)
@@ -85,6 +156,9 @@ function Player.advance(self)
 	end
 end
 
+function Player.hasHitWall(self)
+	return not Stage:contains(self.x[0], self.y[0])
+end
 
 function Player.reset(self, x, y)
 	for i=0, self.length-1 do
@@ -175,8 +249,8 @@ local length2=10;
 local play1=0;
 local play2=0;
 
-local player1 = Player:new(1, colors.red);
-local player2 = Player:new(2, colors.blue);
+local player1 = Player:new(1, 12);
+local player2 = Player:new(2, 1);
 
 
 local keyfuncs = {}
@@ -289,108 +363,32 @@ local function reset_game(player)
 end
 
 local function check()
+	-- First check to see if they've hit
+	-- any of the perimeter walls
+	if player1:hasHitWall() then
+		reset_game(player1);
+		return ;
+	end
+
+	if player2:hasHitWall() then
+		reset_game(player2);
+		return ;
+	end
+
+
+	-- lines of the mid_box
+	if MidBox:hit(player1.x[0], player1.y[0]) then
+		reset_game(player1);
+		return
+	end
+
+	if MidBox:hit(player2.x[0], player2.y[0]) then
+		reset_game(player2);
+		return 
+	end
+
+
 --[=[
-	int no = -1;
-	-- left wall checking
-	if (y1[0]>89 and y1[0]<431  and x1[0]<=71)
-	{
-		reset_game(RED);
-		return;
-	}
-	if (y2[0]>89 and y2[0]<431  and x2[0]<=71)
-	{
-		reset_game(BLUE);
-		return;
-	}
-
-	-- right wall checking
-	if (y1[0]>89 and y1[0]<431  and x1[0]>=560)
-	{
-			reset_game(RED);
-		return;
-	}
-	if (y2[0]>89 and y2[0]<431  and x2[0]>=560)
-	{
-		reset_game(BLUE);
-		return;
-	}
-
-	--top wall checking 
-	if (x1[0]>69 and x1[0]<560  and y1[0]<=90)
-	{
-		reset_game(RED);
-		return;
-	}
-	if (x2[0]>69 and x2[0]<560  and y2[0]<=90)
-	{
-		reset_game(BLUE);
-		return;
-	}
-
-	--bottom wall checking
-	if (x1[0]>69 and x1[0]<560  and y1[0]>=430)
-	{
-		reset_game(RED);
-		return;
-	}
-	if (x2[0]>69 and x2[0]<560  and y2[0]>=430)
-	{
-		reset_game(BLUE);
-		return;
-	}
-
-	-- top line checking
-	if (x1[0]>269 and x1[0]<331 and (y1[0] == 230))
-	{
-		reset_game(RED);
-		return;
-	}
-
-	if (x2[0]>269 and x2[0]<331 and y2[0] == 230)
-	{
-		reset_game(BLUE);
-		return;
-	}
-
-	-- bottom line checking
-	if (x1[0]>269 and x1[0]<331 and (y1[0] == 300))
-	{
-		reset_game(RED);
-		return;
-	}
-
-	if (x2[0]>269 and x2[0]<331 and y2[0] == 300)
-	{
-		reset_game(BLUE);
-		return;
-	}
-
-	-- left line checking
-	if (y1[0]>240 and y1[0]<290 and (x1[0] == 260))
-	{
-		reset_game(RED);
-		return;
-	}
-
-	if (y2[0]>240 and y2[0]<290 and x2[0] == 260)
-	{
-		reset_game(BLUE);
-		return;
-	}
-
-	-- right line checking
-	if (y1[0]>240 and y1[0]<290 and (x1[0] == 340))
-	{
-		reset_game(RED);
-		return;
-	}
-
-	if (y2[0]>240 and y2[0]<290 and x2[0] == 340)
-	{
-		reset_game(BLUE);
-		return;
-	}
-
 	-- RED hits BLUE
 	for (i=0;i<length2;i++)
 	{
@@ -431,22 +429,29 @@ local function check()
 				return;
 			}
 		}       --]]
+--]=]
 
 	-- target checking
-	while(no<2)
-	{
-	for (i=ly1+no;i<=ly2+no;i++)
+	-- in order to lengthen your snake, you 
+	-- must hit the target, which is moving around
+	-- the stage
+	local no = -1;
+	while no < 2 do
+--[[	
+		for (i=ly1+no;i<=ly2+no;i++)
 		{
+			-- player 1 hit target
 			if (x1[0]>lx1-1 and x1[0]<lx2+1  and y1[0] == i)
 			{
-    				target = HIT;
-				hit_sound();
+    			target = HIT;
+				--hit_sound();
 				red_score+=5;
 				player1:lengthChange();
 
 				return;
 			}
 
+			-- player 2 hit target
 			if (x2[0]>lx1-1 and x2[0]<lx2+1  and y2[0] == i)
 			{
 				target = HIT;
@@ -456,9 +461,10 @@ local function check()
 				return;
 			}
 		}
-	no = no + 1;
-	}
---]=]
+--]]		
+		no = no + 1;
+	end
+
 end
 
 local function disp_score()
@@ -496,10 +502,10 @@ function loop()
 	check();
 
 	if (target == HIT) then
-			disp_score();
-			setcolor(15);
-			line(lx1,ly1,lx2,ly2);
-			newtarget();
+		disp_score();
+		setcolor(15);
+		line(lx1,ly1,lx2,ly2);
+		newtarget();
 	end
 
 
@@ -545,40 +551,13 @@ function loop()
 --]]	
 end
 
-local function draw_mid_box()
-	setcolor(1);
-	line(270,230,330,230);
-	line(270,300,330,300);
-	line(260,240,260,290);
-	line(340,240,340,290);
-end
-
 local function main()
 	local graphPort = size(width, height)
+	graphPort:clearToWhite();
 
 	initgraph(graphPort,nil,"c:\\tc");
 
-	setcolor(1);
-	
-	rectangle(70,90,560,430);
-
-	setbkcolor(15);
-	rectangle(5,110,70,150);
-	settextstyle(5,0,0);
-		outtextxy(19,115,"Score");
-	
-	rectangle(560,110,625,150);
-	
-	setcolor(12);
-		outtextxy(570,115,"Score");
-	
-	setfillstyle(SOLID_FILL,1);
-	floodfill(10,10,1);
-	setcolor(12);
-	settextstyle(1,0,4);
-		outtextxy(180,30,"A n a c o n d A");
-	draw_mid_box();
-
+	Arena:draw();
 
 	for i=0, 9 do
 	
@@ -595,8 +574,6 @@ local function main()
 	end
 
 	reset_game();
-
-	--closegraph();
 end
 
 
@@ -605,7 +582,7 @@ local function reset_screen()
 	player2:reset(200, 240);
 
 
-	draw_mid_box();
+	Arena:draw_mid_box();
 	setcolor(15);
         setlinestyle(0,0,THICK_WIDTH);
 	line(lx1,ly1,lx2,ly2);
@@ -629,7 +606,6 @@ local function end_game(player)
 		--exit(0);
 	end
 end
-
 
 main()
 run()

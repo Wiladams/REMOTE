@@ -10450,7 +10450,4 @@ return {
 	verdana18= EmbeddedFont:new(ffi.new("uint8_t[?]", #verdana18_tbl, verdana18_tbl));
 	verdana18_bold= EmbeddedFont:new(ffi.new("uint8_t[?]", #verdana18_bold_tbl, verdana18_bold_tbl));
 
-	gse4x6 = EmbeddedFont:new(ffi.new("uint8_t[?]", #gse4x6_tbl+1, gse4x6_tbl));
-	verdana14 = EmbeddedFont:new(ffi.new("uint8_t[?]", #verdana14_tbl+1, verdana14_tbl));
-	verdana18_bold = EmbeddedFont:new(ffi.new("uint8_t[?]", #verdana18_bold_tbl+1, verdana18_bold_tbl));
 }
