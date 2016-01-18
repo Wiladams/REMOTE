@@ -75,6 +75,10 @@ function DrawingContext.clearToWhite(self)
 	ffi.fill(ffi.cast("char *", self.data), self.width*self.height*4, 255)
 end
 
+function DrawingContext.fillText(self, x, y, text, font, value)
+	font:scan_str(self, x, y, text, value)
+end
+
 function DrawingContext.setPixel(self, x, y, value)
 	local offset = y*self.width+x;
 	self.data[offset] = value;

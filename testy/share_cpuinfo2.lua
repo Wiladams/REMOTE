@@ -9,37 +9,54 @@ package.path = "../?.lua;"..package.path;
 local ffi = require("ffi")
 local NetInteractor = require("tflremote.sharer")
 
-
-
---local colors = require("colors")
---local keycodes = require("tflremote.jskeycodes")
+local stat = require("stat")
 local CPUStripChart = require("CPUStripChart")
 
 local width = 1024;
 local height = 768;
+local chartwidth = 640;
+local chartheight = 100;
 
 
 local graphPort = size(width, height)
+local charts = {}
 
 -- Create a few charts, just to flesh out local problems
 -- eventually these will display individual cpu stats
 -- as well as the combined stats
-local cpuchart = CPUStripChart(0,0,640,100)
-local cpuchart0 = CPUStripChart(0,104, 640, 100, 0)
-local cpuchart1 = CPUStripChart(0,208, 640, 100, 1)
-local cpuchart2 = CPUStripChart(0,312, 640, 100, 2)
-local cpuchart3 = CPUStripChart(0,420, 640, 100, 3)
+local function createStripCharts()
+	-- read the stats once to determine how many cpus
+	-- we have
+	local cpustats = stat.decoder();
+	local numcpus = #cpustats.cpus
+	--print("Num cpus: ", numcpus)
+
+	local xoffset = 0;
+	local yoffset = 0;
+
+	-- first chart is the combined CPU stats
+	table.insert(charts, CPUStripChart(xoffset,yoffset,chartwidth,chartheight))
+
+	-- create an individual chart for each cpu
+	for idx = 0,numcpus-1 do
+		yoffset = yoffset + chartheight + 4;
+		table.insert(charts, CPUStripChart(xoffset,yoffset,chartwidth,chartheight, idx))
+	end
+end
+
+local function draw(graphPort)
+	for _, chart in ipairs(charts) do
+		chart:draw(graphPort)
+	end
+end
 
 function loop()
 	graphPort:clearToWhite();
 
-	cpuchart:draw(graphPort);
-	cpuchart0:draw(graphPort);
-	cpuchart1:draw(graphPort);
-	cpuchart2:draw(graphPort);
-	cpuchart3:draw(graphPort);
+	draw(graphPort)
 end
 
-loopInterval(1000/2)
+loopInterval(1000/10)
+createStripCharts();
 
 run()

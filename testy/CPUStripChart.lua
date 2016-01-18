@@ -28,6 +28,8 @@ local CPUStripChart_mt = {
 }
 
 function CPUStripChart.init(self, originX, originY, width, height, cpuid)
+	local TitleMargin = 96;
+	--local numSamples = width - TitleMargin;
 	local numSamples = 100;
 
 	local obj = {
@@ -40,16 +42,22 @@ function CPUStripChart.init(self, originX, originY, width, height, cpuid)
 		numSamples = numSamples;
 		loadnums = ffi.new("double[?]", numSamples);
 		PreviousStats = nil;
-		TitleMargin = 96;
+		TitleMargin = TitleMargin;
 		Font = fonts.verdana18_bold;
 	}
+	if cpuid then 
+		obj.Name = "CPU "..tostring(cpuid); 
+	else 
+		obj.Name = "CPU" 
+	end
+
 	setmetatable(obj, CPUStripChart_mt)
 
 	return obj;
 end
 
 function CPUStripChart.new(self, originX, originY, width, height, cpuid)
-	return self:init(originX, originY, width, height, graphPort);
+	return self:init(originX, originY, width, height, cpuid);
 end
 
 function CPUStripChart.shiftleft(self)
@@ -64,7 +72,15 @@ function CPUStripChart.sample(self)
 	-- get the latest load number
 	-- newest number goes into highest position
 	local newStats = stat.decoder();
-	
+	if self.cpuid then
+		--print("cpuid: ", self.cpuid)
+		local cpuStats = newStats.cpus[self.cpuid+1];
+		newStats = cpuStats;
+	else
+		--print("allcpus")
+		newStats = newStats.allcpus;
+	end
+
 	-- Calculate current collection percentages
 	newStats.Idle = newStats.idle + newStats.iowait;
 	newStats.NonIdle = newStats.user + newStats.nice + 
@@ -119,7 +135,8 @@ function CPUStripChart.draw(self, graphPort)
 		colors.blue);
 
 	-- put in the title
-	self.Font:scan_str(graphPort, self.originX+4, self.originY+4, "CPU", colors.blue)
+	--self.Font:scan_str(graphPort, self.originX+4, self.originY+4, "CPU", colors.blue)
+	graphPort:fillText(self.originX+4, self.originY+4, self.Name, self.Font, colors.blue);
 end
 
 return CPUStripChart
