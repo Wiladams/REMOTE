@@ -3,6 +3,7 @@ local bit = require("bit")
 local rshift = bit.rshift
 
 local abs = math.abs;
+local floor = math.floor;
 
 local function GetAlignedByteCount(width, bitsPerPixel, byteAlignment)
     local nbytes = width * (bitsPerPixel/8);
@@ -110,6 +111,10 @@ end
 
 -- Bresenham simple line drawing
 function DrawingContext.line(self, x1, y1, x2, y2, value)
+	x1 = floor(x1);
+	y1 = floor(y1);
+	x2 = floor(x2);
+	y2 = floor(y2);
 
 	local dx = x2 - x1;      -- the horizontal distance of the line
 	local dy = y2 - y1;      -- the vertical distance of the line

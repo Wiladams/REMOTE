@@ -29,8 +29,9 @@ local CPUStripChart_mt = {
 
 function CPUStripChart.init(self, originX, originY, width, height, cpuid)
 	local TitleMargin = 96;
+	local numSamples = (width - TitleMargin)/4;
 	--local numSamples = width - TitleMargin;
-	local numSamples = 100;
+	--local numSamples = 100;
 
 	local obj = {
 		originX = originX;
@@ -120,14 +121,27 @@ function CPUStripChart.draw(self, graphPort)
 
 	-- draw the cpu percentage values
 	graphPort:fillRect(self.originX+self.TitleMargin, self.originY, self.width-self.TitleMargin, self.height, colors.white)
-	-- draw vertical line for each value
-	for i=0,self.numSamples-1 do
-		local yval = RANGEMAP(self.loadnums[i], 0, 1.0, self.originY+self.height-1, self.originY)
-		local xval = RANGEMAP(i, 0, self.numSamples-1, self.originX + self.TitleMargin, self.originX+self.width-1)
+	
+	-- draw line for each value
+	local i = 0;
+	while i < self.numSamples-2 do
+		local value1 = self.loadnums[i];
+		local value2 = self.loadnums[i+1];
 
-		--print("yval: ", yval)
-		graphPort:line(xval, self.originY+self.height-1, xval, yval, colors.black)
+		local yval1 = RANGEMAP(value1, 0, 1.0, self.originY+self.height-2, self.originY+1)
+		local xval1 = RANGEMAP(i, 0, self.numSamples-1, self.originX + self.TitleMargin, self.originX+self.width-2)
+		--graphPort:line(xval1, self.originY+self.height-1, xval1, yval1, colors.black)
+
+		local yval2 = RANGEMAP(value2, 0, 1.0, self.originY+self.height-2, self.originY+1)
+		local xval2 = RANGEMAP(i+1, 0, self.numSamples-1, self.originX + self.TitleMargin, self.originX+self.width-2)+1
+
+		graphPort:line(xval1, yval1, xval2, yval2, colors.red)
+
+--print(xval1, yval1, xval2, yval2)
+
+		i = i + 1;
 	end
+
 
 	-- draw a border around the samples
 	graphPort:frameRect(self.originX + self.TitleMargin, self.originY, 
