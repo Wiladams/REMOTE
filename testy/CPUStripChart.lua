@@ -27,18 +27,19 @@ local CPUStripChart_mt = {
 	__index = CPUStripChart;
 }
 
-function CPUStripChart.init(self, originX, originY, width, height, cpuid)
+function CPUStripChart.init(self, params)
 	local TitleMargin = 96;
-	local numSamples = (width - TitleMargin)/4;
+	local numSamples = (params.width - TitleMargin)/4;
 	--local numSamples = width - TitleMargin;
 	--local numSamples = 100;
 
 	local obj = {
-		originX = originX;
-		originY = originY;
-		width = width;
-		height = height;
-		cpuid = cpuid;
+		originX = params.originX or 0;
+		originY = params.originY or 0;
+		width = params.width;
+		height = params.height;
+		cpuid = params.cpuid;
+		color = params.color or colors.red;
 
 		numSamples = numSamples;
 		loadnums = ffi.new("double[?]", numSamples);
@@ -46,8 +47,8 @@ function CPUStripChart.init(self, originX, originY, width, height, cpuid)
 		TitleMargin = TitleMargin;
 		Font = fonts.verdana18_bold;
 	}
-	if cpuid then 
-		obj.Name = "CPU "..tostring(cpuid); 
+	if params.cpuid then 
+		obj.Name = "CPU "..tostring(params.cpuid); 
 	else 
 		obj.Name = "CPU" 
 	end
@@ -130,12 +131,11 @@ function CPUStripChart.draw(self, graphPort)
 
 		local yval1 = RANGEMAP(value1, 0, 1.0, self.originY+self.height-2, self.originY+1)
 		local xval1 = RANGEMAP(i, 0, self.numSamples-1, self.originX + self.TitleMargin, self.originX+self.width-2)
-		--graphPort:line(xval1, self.originY+self.height-1, xval1, yval1, colors.black)
 
 		local yval2 = RANGEMAP(value2, 0, 1.0, self.originY+self.height-2, self.originY+1)
 		local xval2 = RANGEMAP(i+1, 0, self.numSamples-1, self.originX + self.TitleMargin, self.originX+self.width-2)+1
 
-		graphPort:line(xval1, yval1, xval2, yval2, colors.red)
+		graphPort:line(xval1, yval1, xval2, yval2, self.color)
 
 --print(xval1, yval1, xval2, yval2)
 

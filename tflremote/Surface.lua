@@ -1,3 +1,12 @@
+--[[
+	Surface - Represents the place where drawing can occur.
+	It is basically just a chunk of memory with meta 
+	information sufficient for drawing routines to 
+	do their drawing.
+--]]
+
+local ffi = require("ffi")
+
 
 local function GetAlignedByteCount(width, bitsPerPixel, byteAlignment)
     local nbytes = width * (bitsPerPixel/8);
@@ -40,6 +49,38 @@ end
 function Surface.new(self, width, height, data)
 	data = data or ffi.new("int32_t[?]", width*height)
 	return self:init(width, height, data)
+end
+
+function Surface.clearAll(self)
+	ffi.fill(ffi.cast("char *", self.data), self.width*self.height*4)
+end
+
+function Surface.clearToWhite(self)
+	ffi.fill(ffi.cast("char *", self.data), self.width*self.height*4, 255)
+end
+
+function Surface.hline(self, x, y, length, value)
+	local offset = y*self.width+x;
+	while length > 0 do
+		self.data[offset] = value;
+		offset = offset + 1;
+		length = length-1;
+	end
+end
+
+function Surface.hspan(self, x, y, length, span)
+	local dst = ffi.cast("char *", self.data) + (y*self.width*ffi.sizeof("int32_t"))+(x*ffi.sizeof("int32_t"))
+	ffi.copy(dst, span, length*ffi.sizeof("int32_t"))
+end
+
+function Surface.pixel(self, x, y, value)
+	local offset = y*self.width+x;
+	if value then
+		self.data[offset] = value;
+		return self;
+	end
+
+	return self.data[offset]
 end
 
 return Surface

@@ -56,7 +56,7 @@ function size(width, height)
 
 
   graphPort = DrawingContext(ScreenWidth, ScreenHeight)
-  BmpImageSize = bmp.getBmpFileSize(graphPort)
+  BmpImageSize = bmp.getBmpFileSize(graphPort.surface)
   mstream = MemoryStream:new(BmpImageSize);
 
   return graphPort
@@ -82,7 +82,7 @@ local GrabHandler = class("GrabHandler", turbo.web.RequestHandler)
 
 function GrabHandler:get(...)
   --turbo.log.devel("ScreenHandler: "..self.request.host)
-  local bytesWritten = writeImage(mstream, graphPort);
+  local bytesWritten = writeImage(mstream, graphPort.surface);
 
   --print("STREAM: ", bytesWritten)
   self:set_status(200)

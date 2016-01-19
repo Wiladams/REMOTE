@@ -190,7 +190,7 @@ function EmbeddedFont.scan_glyph(self, pb, glyph, x, y, color)
 			if (m_span[spanwidth] == cover_full) then
 				-- really we want a 'cover pixel' so we can do anti-aliasing
 				-- but it's a bitmap font, so it won't matter
-				pb:setPixel(x + spanwidth, y + self.height - line, color);
+				pb:pixel(x + spanwidth, y + self.height - line, color);
 				--pb:frameRect((x + spanwidth)*9, (y + self.height - line)*9, 8, 8, color)
 			end
 

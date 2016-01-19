@@ -27,8 +27,31 @@ local function pointLineDistance(x1, y1, x2, y2, x3, y3)
 	return lineMag(x3, y3, x, y)
 end
 
+function RANGEMAP(x, a, b, c, d)
+	return c + ((x-a)/(b-a)*(d-c))
+end
+
+local function CLIP(x, a, b)
+	if x < a then return a end
+	if x > b then return b end
+
+	return x;
+end
+
+local function sgn(x)
+	if x < 0 then return -1 end
+	if x > 0 then return 1 end
+
+	return 0
+end
+
+
 return {
+	CLIP = CLIP;
+
 	lineMag = lineMag;
 	pointLineIntersection = pointLineIntersection;
 	pointLineDistance = pointLineDistance;
+	RANGEMAP = RANGEMAP;
+	sgn = sgn;
 }

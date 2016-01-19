@@ -64,7 +64,6 @@ function MidBox.hit(self, ptx, pty)
 			aline.x1, aline.y1, 
 			aline.x2, aline.y2, 
 			ptx, pty)
-		--print("MidBox.hit, distance: ", distance)
 
 		if distance == 0 then return true end
 	end

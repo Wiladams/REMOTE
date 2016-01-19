@@ -15,6 +15,8 @@ local colors = require("colors")
 
 local CPUStripChart = require("CPUStripChart")
 
+local random = math.random;
+
 local width = 1024;
 local height = 768;
 
@@ -32,6 +34,10 @@ print("chartheight: ", chartheight, chartheight*numcpus);
 local graphPort = size(width, height)
 local charts = {}
 
+local function randomcolor()
+	return colors.RGBA(random(255), random(255), random(255))
+end
+
 -- Create a few charts, just to flesh out local problems
 -- eventually these will display individual cpu stats
 -- as well as the combined stats
@@ -40,13 +46,28 @@ local function createStripCharts()
 	local yoffset = 0;
 
 	-- first chart is the combined CPU stats
-	table.insert(charts, CPUStripChart(xoffset,yoffset,chartwidth,chartheight))
+	local chart = CPUStripChart({
+		originX = xoffset, 
+		originY = yoffset, 
+		width = chartwidth, 
+		height= chartheight, 
+		color = colors.red})
+
+	table.insert(charts, chart);
 
 	-- create an individual chart for each cpu
 	local idx = 0;
 	while (idx < numcpus) do
 		yoffset = yoffset + chartheight + chartmargin;
-		table.insert(charts, CPUStripChart(xoffset,yoffset,chartwidth,chartheight, idx))
+		local chart = CPUStripChart({
+			originX = xoffset, 
+			originY = yoffset, 
+			width = chartwidth, 
+			height= chartheight, 
+			color = randomcolor(),
+			cpuid = idx});
+
+		table.insert(charts, chart);
 		idx = idx + 1;
 	end
 end
