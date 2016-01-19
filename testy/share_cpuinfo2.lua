@@ -10,13 +10,24 @@ local ffi = require("ffi")
 local NetInteractor = require("tflremote.sharer")
 
 local stat = require("stat")
+local colors = require("colors")
+
+
 local CPUStripChart = require("CPUStripChart")
 
 local width = 1024;
 local height = 768;
-local chartwidth = 640;
-local chartheight = 100;
 
+-- read the stats once to determine how many cpus
+-- we have
+local cpustats = stat.decoder();
+local numcpus = #cpustats.cpus
+print("Num cpus: ", numcpus)
+
+local chartwidth = 640;
+local chartmargin = 2;
+local chartheight = math.floor((height - chartmargin*(numcpus+1))/ (numcpus+1));
+print("chartheight: ", chartheight, chartheight*numcpus);
 
 local graphPort = size(width, height)
 local charts = {}
@@ -25,22 +36,18 @@ local charts = {}
 -- eventually these will display individual cpu stats
 -- as well as the combined stats
 local function createStripCharts()
-	-- read the stats once to determine how many cpus
-	-- we have
-	local cpustats = stat.decoder();
-	local numcpus = #cpustats.cpus
-	--print("Num cpus: ", numcpus)
-
-	local xoffset = 0;
+	local xoffset = chartmargin;
 	local yoffset = 0;
 
 	-- first chart is the combined CPU stats
 	table.insert(charts, CPUStripChart(xoffset,yoffset,chartwidth,chartheight))
 
 	-- create an individual chart for each cpu
-	for idx = 0,numcpus-1 do
-		yoffset = yoffset + chartheight + 4;
+	local idx = 0;
+	while (idx < numcpus) do
+		yoffset = yoffset + chartheight + chartmargin;
 		table.insert(charts, CPUStripChart(xoffset,yoffset,chartwidth,chartheight, idx))
+		idx = idx + 1;
 	end
 end
 
@@ -52,11 +59,11 @@ end
 
 function loop()
 	graphPort:clearToWhite();
-
+	--graphPort:fillRect(0,0,width, height, colors.red)
 	draw(graphPort)
 end
 
-loopInterval(1000/10)
+loopInterval(1000/4)
 createStripCharts();
 
 run()
