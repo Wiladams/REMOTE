@@ -3,6 +3,19 @@
 	It is basically just a chunk of memory with meta 
 	information sufficient for drawing routines to 
 	do their drawing.
+
+	Some of the more primitive drawing routines are here
+	such as clearAll, vline, hline, hspan, pixel
+
+	The drawing routines that are found here do not do any
+	bounds checking, so they can be faster than the drawing
+	context that calls them.  It is up to the drawing context
+	to do the appropriate clipping, scaling, transformations
+	and the like, and then call these routines with parameters
+	which are guaranteed to fit.  This way the decision of where
+	to impose delays due to error checking go further up 
+	into the drawing pipeline, and can thus be optimized
+	where needed.
 --]]
 
 local ffi = require("ffi")
@@ -81,6 +94,15 @@ function Surface.pixel(self, x, y, value)
 	end
 
 	return self.data[offset]
+end
+
+function Surface.vline(self, x, y, length, value)
+	local offset = y*self.width+x;
+	while length > 0 do
+		self.data[offset] = value;
+		offset = offset + self.width;
+		length = length - 1;
+	end
 end
 
 return Surface

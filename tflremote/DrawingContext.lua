@@ -19,6 +19,79 @@ local int32_t = tonumber;
 local uint32_t = tonumber;
 
 
+local APolyDda = {}
+setmetatable(APolyDda, {
+	__call = function(self, ...)
+		return self:new(...);
+	end,
+})
+
+local APolyDda_mt = {
+	__index = APolyDda;
+}
+
+function APolyDda.init(self, pVerts, numVerts, ivert, dir)
+	local obj = {
+		vertIndex = 0;
+		vertNext = 0;
+		x = 0;
+		dx = 0;
+		ybeg = 0;
+		yend = 0;
+	};
+
+	
+	obj.vertIndex = ivert;
+	obj.vertNext = ivert + dir;
+	if obj.vertNext < 1 then
+		obj.vertNext = numVerts - 1;
+	elseif obj.vertNext == numVerts then
+		obj.vertNext = 1;
+	end	
+
+
+	-- set starting/ending ypos and current xpos
+	ybeg = yend;
+	yend = round(pVerts[vertNext*2+1]);
+	x = pVerts[vertIndex*2+0];
+
+	-- Calculate fractional number of pixels to step in x (dx)
+	real xdelta = pVerts[vertNext*2+0] - pVerts[vertIndex*2+0];
+	int ydelta = yend - ybeg;
+	if (ydelta > 0) {
+		dx = xdelta / ydelta;
+	
+	else {
+			dx = 0;
+	end
+end
+
+function APolyDda.setupPolyDda(self, pVerts, numVerts, ivert, dir)
+	self.vertIndex = ivert;
+	self.vertNext = ivert + dir;
+	
+	if (self.vertNext < 1) then
+		self.vertNext = self.numVerts;	
+	elseif (self.vertNext == self.numVerts+1) then
+		self.vertNext = 1;
+	end
+
+	-- set starting/ending ypos and current xpos
+	self.ybeg = self.yend;
+	self.yend = maths.round(pVerts[self.vertNext+1]);
+	self.x = pVerts[vertIndex][1];
+
+	-- Calculate fractional number of pixels to step in x (dx)
+	local xdelta = pVerts[vertNext][1] - pVerts[vertIndex][1];
+	local ydelta = yend - ybeg;
+	if (ydelta > 0) then
+		dx = xdelta / ydelta;
+	else 
+		dx = 0;
+	end
+end
+
+
 --[[
 	Some useful utility routines
 --]]
@@ -42,7 +115,35 @@ local function order3(a, b, c)
 	return a, b, c
 end
 
+-- given a table of vertices for a polygon,
+-- return a number which represents the index of the 
+-- vertex with the smallest 'y' value, and is thus the topmost vertex
+local function findTopmostVertex(verts, numVerts)
+	numVerts = numVerts or #verts;
 
+	local ymin = math.huge;
+	local vmin = 1;
+
+	for idx=1, numVerts do
+		verts[idx][2] < ymin then
+			ymin = verts[idx][2];
+			vmin = idx;
+		end
+
+	end
+	
+	return vmin;
+end
+
+
+
+--[[
+	DrawingContext
+
+	Represents the API for doing drawing.  This is a retained interface,
+	so it will maintain a current drawing color and various other 
+	attributes.
+--]]
 local DrawingContext = {}
 setmetatable(DrawingContext, {
 	__call = function(self, ...)
@@ -91,10 +192,103 @@ function DrawingContext.clearToWhite(self)
 	self.surface:clearToWhite();
 end
 
+function  DrawingContext.fillPolygon(self, verts, nverts, color)
+
+	--const pb_rect &clipRect, 
+
+	-- find topmost vertex of the polygon
+	local vmin = findTopmostVertex(verts, nverts);
+
+	-- set starting line
+	local ldda = APolyDda();
+	local rdda = APolyDda();
+
+	local y = int(verts[vmin][1]);
+	ldda.yend = y;
+	rdda.yend = y;
+
+	-- setup polygon scanner for left side, starting from top
+	ldda.setupPolyDda(verts, nverts, vmin, +1);
+
+	-- setup polygon scanner for right side, starting from top
+	rdda.setupPolyDda(verts, nverts, vmin, -1);
+
+	while (true) do
+		if (y >= ldda.yend) then
+			if (y >= rdda.yend) then
+				if (ldda.vertNext == rdda.vertNext)	then -- if same vertex, then done
+					break;
+				end
+
+				local vnext = rdda.vertNext - 1;
+
+				if (vnext < 1) then
+					vnext = nverts;
+				end
+
+				if (vnext == ldda.vertNext) then
+					break;
+				end
+			end
+			ldda.setupPolyDda(verts, nverts, ldda.vertNext, +1);	// reset left side
+		end
+
+		-- check for right dda hitting end of polygon side
+		-- if so, reset scanner
+		if (y >= rdda.yend) then
+			rdda.setupPolyDda(verts, nverts, rdda.vertNext, -1);
+		end
+
+		-- fill span between two line-drawers, advance drawers when
+		-- hit vertices
+		if (y >= clipRect.y) then
+			self:hline(round(ldda.x), y, round(rdda.x) - round(ldda.x), color);
+		end
+
+		ldda.x = ldda.x + ldda.dx;
+		rdda.x = rdda.x + rdda.dx;
+
+		-- Advance y position.  Exit if run off its bottom
+		y = y + 1;
+		if (y >= clipRect.y + clipRect.height) then
+		
+			break;
+		end
+	end
+end
+
+
+-- Rectangle drawing
+function DrawingContext.fillRect(self, x, y, width, height, value)
+	local length = width;
+
+	-- fill the span buffer with the specified
+	while length > 0 do
+		self.SpanBuffer[length-1] = value;
+		length = length-1;
+	end
+
+	-- use hspan, since we're doing a srccopy, not an 'over'
+	while height > 0 do
+		self:hspan(x, y+height-1, width, self.SpanBuffer)
+		height = height - 1;
+	end
+end
+
+function DrawingContext.frameRect(self, x, y, width, height, value)
+	-- two horizontals
+	self:hline(x, y, width, value);
+	self:hline(x, y+height-1, width, value);
+
+	-- two verticals
+	self:vline(x, y, height, value);
+	self:vline(x+width-1, y, height, value);
+end
+
+-- Text Drawing
 function DrawingContext.fillText(self, x, y, text, font, value)
 	font:scan_str(self.surface, x, y, text, value)
 end
-
 
 
 --[[
@@ -212,29 +406,18 @@ function DrawingContext.frameTriangle(self, x1, y1, x2, y2, x3, y3, color)
 	self:line(pt3.x, pt3.y, pt1.x, pt1.y, color);
 end
 
-function DrawingContext.setPixel(self, x, y, value)
-	self.surface:pixel(x, y, value)
-end
-
-function DrawingContext.vline(self, x, y, length, value)
-	local offset = y*self.width+x;
-	while length > 0 do
-		self.surface.data[offset] = value;
-		offset = offset + self.width;
-		length = length - 1;
-	end
-end
-
-function DrawingContext.hline(self, x, y, length, value)
-	self.surface:hline(x, y, length, value);
-end
-
-function DrawingContext.hspan(self, x, y, length, span)
-	self.surface:hspan(x, y, length, span)
-end
 
 
--- Bresenham simple line drawing
+
+
+
+
+
+
+
+-- Line Drawing
+
+-- Bresenham line drawing
 function DrawingContext.line(self, x1, y1, x2, y2, value)
 	x1 = floor(x1);
 	y1 = floor(y1);
@@ -278,30 +461,22 @@ function DrawingContext.line(self, x1, y1, x2, y2, value)
 	end
 end
 
-function DrawingContext.fillRect(self, x, y, width, height, value)
-	local length = width;
-
-	-- fill the span buffer with the specified
-	while length > 0 do
-		self.SpanBuffer[length-1] = value;
-		length = length-1;
-	end
-
-	-- use hspan, since we're doing a srccopy, not an 'over'
-	while height > 0 do
-		self:hspan(x, y+height-1, width, self.SpanBuffer)
-		height = height - 1;
-	end
+function DrawingContext.setPixel(self, x, y, value)
+	self.surface:pixel(x, y, value)
 end
 
-function DrawingContext.frameRect(self, x, y, width, height, value)
-	-- two horizontals
-	self:hline(x, y, width, value);
-	self:hline(x, y+height-1, width, value);
-
-	-- two verticals
-	self:vline(x, y, height, value);
-	self:vline(x+width-1, y, height, value);
+-- Optimized vertical lines
+function DrawingContext.vline(self, x, y, length, value)
+	self.surface:vline(x, y, length, value);
 end
+
+function DrawingContext.hline(self, x, y, length, value)
+	self.surface:hline(x, y, length, value);
+end
+
+function DrawingContext.hspan(self, x, y, length, span)
+	self.surface:hspan(x, y, length, span)
+end
+
 
 return DrawingContext
