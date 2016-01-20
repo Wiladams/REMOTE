@@ -7,6 +7,7 @@ local floor = math.floor;
 
 local maths = require("tflremote.maths")
 local sgn = maths.sgn;
+local round = maths.round;
 
 local Surface = require("tflremote.Surface")
 
@@ -17,6 +18,7 @@ local Surface = require("tflremote.Surface")
 local int16_t = tonumber;
 local int32_t = tonumber;
 local uint32_t = tonumber;
+local int = tonumber;
 
 
 local APolyDda = {}
@@ -34,13 +36,23 @@ function APolyDda.init(self, pVerts, numVerts, ivert, dir)
 	local obj = {
 		vertIndex = 0;
 		vertNext = 0;
+		numVerts = numVerts;
 		x = 0;
 		dx = 0;
 		ybeg = 0;
 		yend = 0;
 	};
 
-	
+	setmetatable(obj, APolyDda_mt);
+
+	return obj;
+end
+
+function APolyDda.new(self, pVerts, numVerts, ivert, dir)
+	return self:init(pVerts, numVerts, ivert, dir);
+end
+
+--[[
 	obj.vertIndex = ivert;
 	obj.vertNext = ivert + dir;
 	if obj.vertNext < 1 then
@@ -56,8 +68,8 @@ function APolyDda.init(self, pVerts, numVerts, ivert, dir)
 	x = pVerts[vertIndex*2+0];
 
 	-- Calculate fractional number of pixels to step in x (dx)
-	real xdelta = pVerts[vertNext*2+0] - pVerts[vertIndex*2+0];
-	int ydelta = yend - ybeg;
+	local xdelta = pVerts[vertNext*2+0] - pVerts[vertIndex*2+0];
+	local ydelta = yend - ybeg;
 	if (ydelta > 0) {
 		dx = xdelta / ydelta;
 	
@@ -65,11 +77,14 @@ function APolyDda.init(self, pVerts, numVerts, ivert, dir)
 			dx = 0;
 	end
 end
+--]]
 
-function APolyDda.setupPolyDda(self, pVerts, numVerts, ivert, dir)
+function APolyDda.setupPolyDda(self, pVerts, ivert, dir)
+	local numVerts = #pVerts;
 	self.vertIndex = ivert;
 	self.vertNext = ivert + dir;
-	
+	self.numVerts = numVerts;
+
 	if (self.vertNext < 1) then
 		self.vertNext = self.numVerts;	
 	elseif (self.vertNext == self.numVerts+1) then
@@ -78,16 +93,16 @@ function APolyDda.setupPolyDda(self, pVerts, numVerts, ivert, dir)
 
 	-- set starting/ending ypos and current xpos
 	self.ybeg = self.yend;
-	self.yend = maths.round(pVerts[self.vertNext+1]);
-	self.x = pVerts[vertIndex][1];
+	self.yend = round(pVerts[self.vertNext][2]);
+	self.x = pVerts[self.vertIndex][1];
 
 	-- Calculate fractional number of pixels to step in x (dx)
-	local xdelta = pVerts[vertNext][1] - pVerts[vertIndex][1];
-	local ydelta = yend - ybeg;
+	local xdelta = pVerts[self.vertNext][1] - pVerts[self.vertIndex][1];
+	local ydelta = self.yend - self.ybeg;
 	if (ydelta > 0) then
-		dx = xdelta / ydelta;
+		self.dx = xdelta / ydelta;
 	else 
-		dx = 0;
+		self.dx = 0;
 	end
 end
 
@@ -125,11 +140,10 @@ local function findTopmostVertex(verts, numVerts)
 	local vmin = 1;
 
 	for idx=1, numVerts do
-		verts[idx][2] < ymin then
+		if verts[idx][2] < ymin then
 			ymin = verts[idx][2];
 			vmin = idx;
 		end
-
 	end
 	
 	return vmin;
@@ -192,9 +206,14 @@ function DrawingContext.clearToWhite(self)
 	self.surface:clearToWhite();
 end
 
-function  DrawingContext.fillPolygon(self, verts, nverts, color)
-
-	--const pb_rect &clipRect, 
+-- Fill a convex polygon with counter clockwise winding
+-- This implementation is not good, and only holds a 
+-- temporary spot
+-- We need a version that can render more complex
+-- polygons, including non-simple
+function  DrawingContext.fillPolygon(self, verts, color)
+	--const pb_rect &clipRect,
+	local nverts = #verts;
 
 	-- find topmost vertex of the polygon
 	local vmin = findTopmostVertex(verts, nverts);
@@ -208,10 +227,10 @@ function  DrawingContext.fillPolygon(self, verts, nverts, color)
 	rdda.yend = y;
 
 	-- setup polygon scanner for left side, starting from top
-	ldda.setupPolyDda(verts, nverts, vmin, +1);
+	ldda:setupPolyDda(verts, vmin, 1);
 
 	-- setup polygon scanner for right side, starting from top
-	rdda.setupPolyDda(verts, nverts, vmin, -1);
+	rdda:setupPolyDda(verts, vmin, -1);
 
 	while (true) do
 		if (y >= ldda.yend) then
@@ -230,30 +249,32 @@ function  DrawingContext.fillPolygon(self, verts, nverts, color)
 					break;
 				end
 			end
-			ldda.setupPolyDda(verts, nverts, ldda.vertNext, +1);	// reset left side
+			ldda:setupPolyDda(verts, ldda.vertNext, 1);	-- reset left side
 		end
 
 		-- check for right dda hitting end of polygon side
 		-- if so, reset scanner
 		if (y >= rdda.yend) then
-			rdda.setupPolyDda(verts, nverts, rdda.vertNext, -1);
+			rdda:setupPolyDda(verts, rdda.vertNext, -1);
 		end
 
 		-- fill span between two line-drawers, advance drawers when
 		-- hit vertices
-		if (y >= clipRect.y) then
+		--if (y >= clipRect.y) then
+			print("hline: ", ldda.x, y, rdda.x, round(rdda.x) - round(ldda.x))
 			self:hline(round(ldda.x), y, round(rdda.x) - round(ldda.x), color);
-		end
+		--end
 
 		ldda.x = ldda.x + ldda.dx;
 		rdda.x = rdda.x + rdda.dx;
 
 		-- Advance y position.  Exit if run off its bottom
 		y = y + 1;
+		--[[
 		if (y >= clipRect.y + clipRect.height) then
-		
 			break;
 		end
+		--]]
 	end
 end
 

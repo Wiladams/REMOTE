@@ -1,5 +1,8 @@
 
 local sqrt = math.sqrt
+local floor = math.floor
+local ceil = math.ceil
+
 
 -- determine where a point (p3) intersects the
 -- line determined by points p1 and p2
@@ -31,6 +34,14 @@ function RANGEMAP(x, a, b, c, d)
 	return c + ((x-a)/(b-a)*(d-c))
 end
 
+local function round(n)
+	if n >= 0 then
+		return floor(n+0.5)
+	end
+
+	return ceil(n-0.5)
+end
+
 local function CLIP(x, a, b)
 	if x < a then return a end
 	if x > b then return b end
@@ -53,5 +64,6 @@ return {
 	pointLineIntersection = pointLineIntersection;
 	pointLineDistance = pointLineDistance;
 	RANGEMAP = RANGEMAP;
+	round = round;
 	sgn = sgn;
 }
