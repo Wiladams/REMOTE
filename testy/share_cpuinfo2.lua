@@ -17,8 +17,8 @@ local CPUStripChart = require("CPUStripChart")
 
 local random = math.random;
 
-local width = 1024;
-local height = 768;
+local width = 640;
+local height = 480;
 
 -- read the stats once to determine how many cpus
 -- we have
@@ -26,7 +26,7 @@ local cpustats = stat.decoder();
 local numcpus = #cpustats.cpus
 print("Num cpus: ", numcpus)
 
-local chartwidth = 640;
+local chartwidth = 638;
 local chartmargin = 2;
 local chartheight = math.floor((height - chartmargin*(numcpus+1))/ (numcpus+1));
 print("chartheight: ", chartheight, chartheight*numcpus);
