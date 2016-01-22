@@ -14,11 +14,11 @@ local MemoryStream = require("tflremote.memorystream")
 --]]
 local serviceport = tonumber(arg[1]) or 8080
 local ioinstance = nil;
-local LoopInterval = 1000 / 60;
+local LoopInterval = 1000 / 4;
 local LoopIntervalRef = nil;
 
 
-local FrameInterval = 100;
+local FrameInterval = 1000;
 local ImageBitCount = 32;
 local ScreenWidth = nil;
 local ScreenHeight = nil;
@@ -82,12 +82,14 @@ local GrabHandler = class("GrabHandler", turbo.web.RequestHandler)
 
 function GrabHandler:get(...)
   --turbo.log.devel("ScreenHandler: "..self.request.host)
+  --print("accept-encoding: ", self:get_header("Content-Encoding"))
   local bytesWritten = writeImage(mstream, graphPort.surface);
 
   --print("STREAM: ", bytesWritten)
   self:set_status(200)
   self:add_header("Content-Type", "image/bmp")
   self:add_header("Content-Length", tostring(bytesWritten))
+  --self:add_header("Content-Encoding", "gzip")
   self:add_header("Connection", "Keep-Alive")
   
   self:write(ffi.string(mstream.Buffer, bytesWritten));
@@ -105,10 +107,10 @@ local function loadStartupContent(self)
     --print();
 
     -- load the file into memory
-    local fs, err = io.open("viewcanvas.htm")
+    --local fs, err = io.open("viewcanvas.htm")
     --local fs, err = io.open("viewscreen_simple.htm")
     --local fs, err = io.open("viewscreen.htm")
-    --local fs, err = io.open("sharescreen.htm")
+    local fs, err = io.open("sharescreen.htm")
 
     if not fs then
       self:set_status(500)
@@ -205,7 +207,7 @@ end
 
 
 
-turbo.log.categories.success = false;
+--turbo.log.categories.success = false;
 
 
 local app = nil;

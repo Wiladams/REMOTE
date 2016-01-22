@@ -73,3 +73,5 @@ The mouse events are: mouseMove, mouseDown, mouseUp
 
 The keyboard events are: keyDown, keyUp, keyPress
 
+Dependencies
+libpng-dev(el)

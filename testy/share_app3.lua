@@ -8,8 +8,8 @@ local colors = require("colors")
 local keycodes = require("tflremote.jskeycodes")
 
 
-local width = 640;
-local height = 480;
+local width = 320;
+local height = 240;
 local graphPort = size(width, height)
 
 local targetarea = nil;
@@ -46,11 +46,17 @@ local function whichRect(areas, x, y)
 	return nil;
 end
 
-
-function mouseMove(activity)
+function mouseDown(activity)
+	print("mouseDown: ", activity.x, activity.y)
 	targetarea = whichRect(areas, activity.x, activity.y)
 end
 
+--[[
+function mouseMove(activity)
+	print("mouseMove: ", activity.x, activity.y)
+	targetarea = whichRect(areas, activity.x, activity.y)
+end
+--]]
 
 function draw()
 	--graphPort:rect(0,0,width, height, colors.black)
