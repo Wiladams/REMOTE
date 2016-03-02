@@ -57,12 +57,12 @@ function draw()
 	graphPort:clearAll();
 
 	for _, area in ipairs(areas) do
-		graphPort:rect(area.x, area.y, area.width, area.height, area.color);
+		graphPort:fillRect(area.x, area.y, area.width, area.height, area.color);
 	end
 
 	-- draw the current hover area in yellow
 	if targetarea then
-		graphPort:rect(targetarea.x, targetarea.y, targetarea.width, targetarea.height, colors.darkyellow)
+		graphPort:fillRect(targetarea.x, targetarea.y, targetarea.width, targetarea.height, colors.darkyellow)
 	end
 
 	graphPort:hline(10, yoffset, 100, redhalf);
@@ -70,6 +70,7 @@ function draw()
 	graphPort:hline(210, yoffset, 100, bluehalf);
 
 end
+
 
 function loop()
 	yoffset = yoffset + 1
@@ -81,5 +82,5 @@ function loop()
 end
 
 
-
+--loopInterval(1000,2)
 run()

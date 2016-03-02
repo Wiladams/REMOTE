@@ -33,9 +33,9 @@ function draw()
 	graphPort:clearAll();
 
 
-	graphPort:rect(10, 30, 100, 100, colors.red)
-	graphPort:rect(110, 30, 100, 100, colors.green)
-	graphPort:rect(210, 30, 100, 100, colors.blue)
+	graphPort:fillRect(10, 30, 100, 100, colors.red)
+	graphPort:fillRect(110, 30, 100, 100, colors.green)
+	graphPort:fillRect(210, 30, 100, 100, colors.blue)
 
 	graphPort:hline(10, yoffset, 100, redhalf);
 	graphPort:hline(110, yoffset, 100, greenhalf);
