@@ -3,10 +3,7 @@ _G.TURBO_SSL = true -- SSL must be enabled for WebSocket support!
 local ffi = require("ffi")
 local turbo = require("turbo")
 
---local colors = require("colors")
-local bmp = require("tflremote.bmpcodec")
-local DrawingContext = require("tflremote.DrawingContext")
---local DrawingContext = require("tflremote.PixmanContext")
+--local DrawingContext = require("tflremote.DrawingContext")
 local MemoryStream = require("tflremote.memorystream")
 
 --[[
@@ -25,9 +22,9 @@ local ScreenHeight = nil;
 local captureWidth = nil;
 local captureHeight = nil;
 
-local graphPort = nil;
+--local graphPort = nil;
 local mstream = nil;
-local BmpImageSize = nil;
+--local BmpImageSize = nil;
 
 function loopInterval(newInterval)
 
@@ -55,19 +52,11 @@ function size(width, height)
   ImageHeight = captureHeight * 1.0;
 
 
-  graphPort = DrawingContext(ScreenWidth, ScreenHeight)
-  BmpImageSize = bmp.getBmpFileSize(graphPort.surface)
-  mstream = MemoryStream:new(BmpImageSize);
+  -- 1Mb should be good enough for most
+  -- images
+  mstream = MemoryStream:new(1024*1024);
 
-  return graphPort
-end
-
-function writeImage(strm, img)
-  -- generate a .bmp file
-  strm:reset();
-  local bytesWritten = bmp.write(strm, img)
-  
-  return bytesWritten;
+  return mstream;
 end
 
 
@@ -82,17 +71,20 @@ local GrabHandler = class("GrabHandler", turbo.web.RequestHandler)
 
 function GrabHandler:get(...)
   --turbo.log.devel("ScreenHandler: "..self.request.host)
-  --print("accept-encoding: ", self:get_header("Content-Encoding"))
-  local bytesWritten = writeImage(mstream, graphPort.surface);
+  local bytesWritten = mstream.BytesWritten;
 
   --print("STREAM: ", bytesWritten)
   self:set_status(200)
-  self:add_header("Content-Type", "image/bmp")
+  self:add_header("Content-Type", "image/svg+xml")
   self:add_header("Content-Length", tostring(bytesWritten))
   --self:add_header("Content-Encoding", "gzip")
   self:add_header("Connection", "Keep-Alive")
   
-  self:write(ffi.string(mstream.Buffer, bytesWritten));
+print("=== SVG - BEGIN ===")
+  local str = ffi.string(mstream.Buffer, bytesWritten)
+  print(str);
+
+  self:write(str);
   self:flush();
 end
 
@@ -110,7 +102,8 @@ local function loadStartupContent(self)
     --local fs, err = io.open("viewcanvas.htm")
     --local fs, err = io.open("viewscreen_simple.htm")
     --local fs, err = io.open("viewscreen.htm")
-    local fs, err = io.open("sharescreen.htm")
+    --local fs, err = io.open("sharescreen.htm")
+    local fs, err = io.open("sharesvg.htm")
 
     if not fs then
       self:set_status(500)
@@ -200,14 +193,14 @@ local function onLoop(ioinstance)
 end
 
 local function onInterval(ioinstance)
-  if loop then
-    loop()
+  if frame then
+    frame()
   end
 end
 
 
-
-turbo.log.categories.success = false;
+-- uncomment if you want to turn off success messages
+--turbo.log.categories.success = false;
 
 
 local app = nil;
@@ -216,7 +209,7 @@ function run()
   app = turbo.web.Application({
   {"/(jquery%.js)", turbo.web.StaticFileHandler, "./jquery.js"},
   {"/(favicon%.ico)", turbo.web.StaticFileHandler, "./favicon.ico"},
-  {"/grab%.bmp(.*)$", GrabHandler},
+  {"/grab%.svg(.*)$", GrabHandler},
   {"/screen", StartupHandler},
   {"/ws/uiosocket", WSExHandler}
 })
