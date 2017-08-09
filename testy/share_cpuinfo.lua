@@ -14,7 +14,8 @@ local NetInteractor = require("tflremote.sharer")
 local colors = require("colors")
 local keycodes = require("tflremote.jskeycodes")
 --local procfs = require("lj2procfs.procfs")
-local stat = require("stat")
+local stat = require("lj2procfs.codecs.stat")
+
 
 
 local width = 640;
@@ -41,7 +42,8 @@ function loop()
 	-- get the latest load number
 	-- newest number goes into highest position
 	local newStats = stat.decoder();
-	
+
+
 	-- Calculate current collection percentages
 	newStats.Idle = newStats.idle + newStats.iowait;
 	newStats.NonIdle = newStats.user + newStats.nice + 
