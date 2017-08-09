@@ -2,11 +2,11 @@ _G.TURBO_SSL = true -- SSL must be enabled for WebSocket support!
 
 local ffi = require("ffi")
 local turbo = require("turbo")
+local zlib = require("tflremote.zlib")
 
 --local colors = require("colors")
 local bmp = require("tflremote.bmpcodec")
 local DrawingContext = require("tflremote.DrawingContext")
---local DrawingContext = require("tflremote.PixmanContext")
 local MemoryStream = require("tflremote.memorystream")
 
 --[[
@@ -14,11 +14,11 @@ local MemoryStream = require("tflremote.memorystream")
 --]]
 local serviceport = tonumber(arg[1]) or 8080
 local ioinstance = nil;
-local LoopInterval = 1000 / 4;
+local LoopInterval = 1000 / 15;
 local LoopIntervalRef = nil;
 
 
-local FrameInterval = 1000;
+local FrameInterval = 1000/5;
 local ImageBitCount = 32;
 local ScreenWidth = nil;
 local ScreenHeight = nil;
@@ -43,6 +43,8 @@ function loopInterval(newInterval)
   end
 end
 
+local outbuf = nil;
+local outbuflen = 0;
 
 function size(width, height)
   ScreenWidth = width;
@@ -58,6 +60,9 @@ function size(width, height)
   graphPort = DrawingContext(ScreenWidth, ScreenHeight)
   BmpImageSize = bmp.getBmpFileSize(graphPort.surface)
   mstream = MemoryStream:new(BmpImageSize);
+
+  outbuflen = BmpImageSize*1.1;
+  outbuf = ffi.new("uint8_t[?]", outbuflen)
 
   return graphPort
 end
@@ -88,16 +93,27 @@ function GrabHandler:get(...)
   --print("STREAM: ", bytesWritten)
   self:set_status(200)
   self:add_header("Content-Type", "image/bmp")
-  self:add_header("Content-Length", tostring(bytesWritten))
-  --self:add_header("Content-Encoding", "gzip")
   self:add_header("Connection", "Keep-Alive")
   
-  self:write(ffi.string(mstream.Buffer, bytesWritten));
+--[[
+  --self:add_header("Content-Length", tostring(bytesWritten))
+  --self:write(ffi.string(mstream.Buffer, bytesWritten));
+--]]
+
+---[[
+
+  local buff, bufflen = zlib.compress(mstream.Buffer, bytesWritten, outbuf, outbufflen)
+  --self:add_header("Content-Encoding", "gzip")
+  self:add_header("Content-Encoding", "deflate")
+  self:add_header("Content-Length", tostring(bufflen))
+  self:write(ffi.string(buff, bufflen));
+--]]
+
   self:flush();
 end
 
 -- Default request handler
-local StartupHandler = class("StartupHandler", turbo.web.RequestHandler)
+local screenHandler = class("screenHandler", turbo.web.RequestHandler)
 
 local startupContent = nil;
 
@@ -147,7 +163,7 @@ local function loadStartupContent(self)
     return startupContent
 end
 
-function StartupHandler:get(...)
+function screenHandler:get(...)
 
   if not startupContent then
     loadStartupContent(self)
@@ -207,7 +223,7 @@ end
 
 
 
---turbo.log.categories.success = false;
+turbo.log.categories.success = false;
 
 
 local app = nil;
@@ -217,7 +233,7 @@ function run()
   {"/(jquery%.js)", turbo.web.StaticFileHandler, "./jquery.js"},
   {"/(favicon%.ico)", turbo.web.StaticFileHandler, "./favicon.ico"},
   {"/grab%.bmp(.*)$", GrabHandler},
-  {"/screen", StartupHandler},
+  {"/screen", screenHandler},
   {"/ws/uiosocket", WSExHandler}
 })
 

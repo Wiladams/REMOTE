@@ -9,7 +9,7 @@ local NetInteractor = require("tflremote.sharer")
 local colors = require("colors")
 local keycodes = require("tflremote.jskeycodes")
 local bgi = require("bgi")
-local maths = require("maths")
+local maths = require("tflremote.maths")
 
 
 local width = 640;

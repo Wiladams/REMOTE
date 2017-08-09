@@ -17,19 +17,17 @@ local CPUStripChart = require("CPUStripChart")
 
 local random = math.random;
 
-local width = 640;
-local height = 480;
+local width = 320;
+local height = 200;
 
 -- read the stats once to determine how many cpus
 -- we have
 local cpustats = stat.decoder();
 local numcpus = #cpustats.cpus
-print("Num cpus: ", numcpus)
 
-local chartwidth = 638;
 local chartmargin = 2;
+local chartwidth = width - chartmargin;
 local chartheight = math.floor((height - chartmargin*(numcpus+1))/ (numcpus+1));
-print("chartheight: ", chartheight, chartheight*numcpus);
 
 local graphPort = size(width, height)
 local charts = {}
@@ -84,7 +82,7 @@ function loop()
 	draw(graphPort)
 end
 
-loopInterval(1000/4)
+loopInterval(1000/10)
 createStripCharts();
 
 run()
